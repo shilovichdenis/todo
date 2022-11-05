@@ -1,0 +1,48 @@
+﻿.header {
+}
+
+.projects-list {
+}
+
+.project {
+    padding: 10px;
+    border: 1px solid #dee2e6;
+}
+
+    .project .project-title {
+        position: relative;
+        background-color: #171616;
+        padding: 15px;
+        color: white;
+    }
+
+.display-project-link {
+    color: white;
+}
+
+    .display-project-link:hover {
+        color: #d9aa27;
+    }
+
+.project-tasks {
+}
+
+    .project-tasks table {
+        margin-bottom: 0
+    }
+
+        .project-tasks table th:first-child {
+            width: 50px;
+        }
+
+        .project-tasks table th:nth-child(3) {
+            width: 300px;
+        }
+
+        .project-tasks table th:nth-child(4) {
+            width: 100px;
+        }
+
+        .project-tasks table th:last-child {
+            width: 50px;
+        }

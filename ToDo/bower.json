@@ -1,0 +1,24 @@
+{
+  "name": "todo",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "shilovichdenis <shilovich.denis.12@mail.ru>"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-validation-unobtrusive": "^4.0.0",
+    "jquery-validation": "^1.19.5",
+    "jquery": "^3.6.1",
+    "bootstrap": "^5.2.2"
+  }
+}

@@ -1,0 +1,106 @@
+﻿@model IEnumerable<ToDo.Models.Project>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+<section class="modal-forms">
+    <div id="create-task-form" class="modal"
+         aria-hidden="true"
+         role="dialog"
+         data-keyboard="true">
+        <div id="create-dialog" class="modal-dialog">
+        </div>
+    </div>
+    <div id="delete-task-form" class="modal"
+         aria-hidden="true"
+         role="dialog"
+         data-keyboard="true">
+        <div id="delete-dialog" class="modal-dialog">
+        </div>
+    </div>
+</section>
+<section class="header">
+    <h1 class="text-center">Projects</h1>
+</section>
+<section class="projects-list">
+    @if (Model.Count() != 0)
+    {
+        foreach (var (indexProject, project) in Model.Select((i, p) => (p, i)))
+        {
+            <div class="project mt-4">
+                <div class="project-title h4 text-center">
+                    <a class="display-project-link" asp-page="/Home/DisplayView" asp-route-projectid="@project.Id">@project.Name.ToUpper()</a>
+                    <a class="create-task-link create-link bi bi-file-earmark-plus"
+               asp-action="Create"
+               asp-controller="Tasks"
+               asp-route-projectId="@project.Id"
+               data-bs-toggle="modal"
+               data-bs-target="#create-task-form"></a>
+                </div>
+                <div class="project-tasks">
+                    <table class="table table-bordered text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Priority</th>
+                                <th>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (project.Tasks.Count() != 0)
+                            {
+                                @foreach (var (indexTask, task) in project.Tasks.Select((i, t) => (t, i)))
+                                {
+                                    <tr>
+                                        <td>@(indexTask + 1)</td>
+                                        <td>@task.Title</td>
+                                        <td>
+                                            <span class="date created-date">
+                                                @task.CreatedDate
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                                @task.Priority
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="btn-box">
+                                                <form method="post">
+                                                    <input type="hidden" value="@task.Id" name="taskId" id="complete-task-id" />
+                                                    <button class="complete-task-link table-btn bi bi-file-earmark-check" type="submit" asp-page-handler="CompleteTask"></button>
+                                                </form>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</section>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $(".create-link").click(function (e) {
+                $.get(this.href, function (data) {
+                    $('#create-dialog').html(data);
+                });
+            });
+        });
+        $(document).ready(function () {
+            $(".delete-link").click(function (e) {
+                $.get(this.href, function (data) {
+                    $('#delete-dialog').html(data);
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,17 @@
+﻿@model ToDo.Models.Task
+
+<section class="modal-content" id="delete-form-info">
+    <div class="d-flex flex-row px-3 py-2 justify-content-center align-items-center">
+        <p class="h2">Delete task</p>
+        <a class="position-absolute h2 top-0 pe-3 pt-2 end-0" href="#" data-bs-dismiss="modal">&times;</a>
+    </div>
+    <div class="px-3 pt-1 pb-3">
+        <p class="text-center h6 text-break">
+            @Html.DisplayFor(model => model.Title)
+        </p>
+        <form class="d-flex justify-content-center align-items-center mt-4" asp-action="Delete" asp-controller="Tasks" asp-route-id=@Model.Id>
+            <input class="btn btn-danger me-1" type="submit" value="Delete" />
+            <a class="btn btn-primary ms-1" href="#" data-bs-dismiss="modal">Cancel</a>
+        </form>
+    </div>
+</section>

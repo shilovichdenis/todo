@@ -1,0 +1,222 @@
+﻿@page
+@model ToDo.Pages.DisplayView
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "DisplayView";
+}
+
+<section class="modal-forms">
+    <div id="create-task-form" class="modal"
+         aria-hidden="true"
+         role="dialog"
+         data-keyboard="true">
+        <div id="create-dialog" class="modal-dialog">
+        </div>
+    </div>
+    <div id="edit-task-form" class="modal"
+         aria-hidden="true"
+         role="dialog"
+         data-keyboard="true">
+        <div id="edit-dialog" class="modal-dialog">
+        </div>
+    </div>
+    <div id="delete-task-form" class="modal"
+         aria-hidden="true"
+         role="dialog"
+         data-keyboard="true">
+        <div id="delete-dialog" class="modal-dialog">
+            <section class="modal-content">
+                <div class="h4 text-center form-title">
+                    DELETE TASK
+                    <a class="form-title-closelink mt-3 bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
+                </div>
+                <div class="px-3 pt-1 pb-3 text-center">
+                    <span class="h6">
+                        Are you sure you want to delete the task?
+                    </span>
+                    <form method="post" class="d-flex justify-content-center align-items-center mt-4">
+                        <input type="hidden" value="" name="taskId" id="delete-task-id" />
+                        <input class="btn btn-danger me-1" type="submit" value="Delete" asp-page-handler="DeleteTask" />
+                        <a class="btn btn-secondary ms-1" href="#" data-bs-dismiss="modal">Cancel</a>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>
+<section class="project-main">
+    <div class="project-title text-center">
+        <h1>@Html.DisplayFor(model => model.Project.Name)</h1>
+        <a class="main-link bi bi-x-square" asp-action="Main" asp-controller="Home"></a>
+    </div>
+    <div class="project-info">
+        <div class="info-title h4 text-center my-3">
+            INFORMATION
+            <a class="edit-project-link bi bi-file-earmark-font" id="edit-project-link"></a>
+        </div>
+
+        <partial name="_StatusMessage" for="EditProjectStatusMessage" />
+        <form class="edit-project-form" method="post" id="edit-project-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Project.Id" disabled />
+            <div class="row">
+                <div class="col-md-6 row form-group">
+                    <div class="col-md-4">
+                        <label asp-for="Project.Name" class="control-label"></label>
+                    </div>
+                    <div class="col-md-8">
+                        <input asp-for="Project.Name" class="form-control" autocomplete="off" disabled />
+                    </div>
+                    <span asp-validation-for="Project.Name" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 row form-group">
+                    <div class="col-md-4">
+                        <label asp-for="Project.CreatedDate" class="control-label"></label>
+                    </div>
+                    <div class="col-md-8 pe-0">
+                        <input id="info-input" asp-for="Project.CreatedDate" class="form-control" autocomplete="off" disabled />
+                    </div>
+                    <span asp-validation-for="Project.CreatedDate" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 row form-group">
+                    <div class="col-md-4">
+                        <label asp-for="Project.ProgrammingLanguage" class="control-label"></label>
+                    </div>
+                    <div class="col-md-8">
+                        <select asp-for="Project.ProgrammingLanguage" class="form-control" asp-items="@Html.GetEnumSelectList<ProgrammingLanguage>()" disabled></select>
+                    </div>
+                    <span asp-validation-for="Project.ProgrammingLanguage" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 row form-group">
+                    <div class="col-md-4">
+                        <label asp-for="Project.Type" class="control-label"></label>
+                    </div>
+                    <div class="col-md-8 pe-0">
+                        <select asp-for="Project.Type" class="form-control" asp-items="@Html.GetEnumSelectList<Type>()" disabled></select>
+                    </div>
+                    <span asp-validation-for="Project.Type" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <input type="submit" value="Save" asp-page-handler="EditProject" class="btn btn-primary" disabled />
+            </div>
+        </form>
+    </div>
+</section>
+<section class="project-tasks">
+    <div class="tasks-title h4 text-center my-3">
+        TASKS
+        <a class="create-task-link create-link bi bi-file-earmark-plus"
+           asp-action="Create"
+           asp-controller="Tasks"
+           asp-route-projectId="@Model.Project.Id"
+           data-bs-toggle="modal"
+           data-bs-target="#create-task-form"></a>
+    </div>
+    <partial name="_StatusMessage" for="CompletedTaskStatusMessage" />
+    <partial name="_StatusMessage" for="DeletedTaskStatusMessage" />
+    <div class="tasks-list">
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Priority</th>
+                    <th>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5"><b>UNFINISHED</b></td>
+                </tr>
+                @if (Model.Tasks != null)
+                {
+                    foreach (var (index, task) in Model.Tasks.Where(t => !t.isCompleted).Select((i, t) => (t, i)))
+                    {
+                        <tr>
+                            <td>@(index + 1)</td>
+                            <td>@task.Title</td>
+                            <td>
+                                <span class="date created-date">
+                                    @task.CreatedDate
+                                </span>
+                            </td>
+                            <td>
+                                <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                    @task.Priority
+                                </span>
+                            </td>
+                            <td>
+                                <span class="btn-box">
+                                    <form method="post">
+                                        <input type="hidden" value="@task.Id" name="taskId" id="complete-task-id" />
+                                        <button class="complete-task-link table-btn bi bi-file-earmark-check" type="submit" asp-page-handler="CompleteTask"></button>
+                                    </form>
+                                    <a class="edit-task-link edit-link table-btn bi bi-file-earmark-font"
+                               asp-action="Edit"
+                               asp-controller="Tasks"
+                               asp-route-id="@task.Id"
+                               data-bs-toggle="modal"
+                               data-bs-target="#edit-task-form"></a>
+                                    <a class="delete-task-link delete-link table-btn bi bi-file-earmark-excel"
+                               data-task-id="@task.Id"
+                               data-bs-toggle="modal"
+                               data-bs-target="#delete-task-form"></a>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                <tr>
+                    <td colspan="5"><b>FINISHED</b></td>
+                </tr>
+                @if (Model.Tasks != null)
+                {
+                    foreach (var (index, task) in Model.Tasks.Where(t => t.isCompleted).OrderBy(t => t.CompletedDate).Select((i, t) => (t, i)))
+                    {
+                        <tr>
+                            <td>@(index + 1)</td>
+                            <td>@task.Title</td>
+                            <td>
+@*                                <span class="date created-date mb-2">
+                                    @task.CreatedDate
+                                </span>*@
+                                <span class="date completed-date">
+                                    @task.CompletedDate
+                                </span>
+                            </td>
+                            <td>
+                                <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                    @task.Priority
+                                </span>
+                            </td>
+                            <td>
+                                <span class="btn-box">
+                                    <a class="edit-task-link edit-link table-btn bi bi-file-earmark-font"
+                               asp-action="Edit"
+                               asp-controller="Tasks"
+                               asp-route-id="@task.Id"
+                               data-bs-toggle="modal"
+                               data-bs-target="#edit-task-form"></a>
+                                    <a class="delete-task-link delete-link table-btn bi bi-file-earmark-excel"
+                               data-task-id="@task.Id"
+                               data-bs-toggle="modal"
+                               data-bs-target="#delete-task-form"></a>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="../Views/Shared/_ValidationScriptsPartial" />
+
+}

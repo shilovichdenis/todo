@@ -1,0 +1,32 @@
+﻿.modal-content {
+    border: none !important;
+    border-radius: unset !important;
+}
+
+.form-title {
+    background-color: #171616;
+    color: white;
+    position: relative;
+    padding: 1rem 0;
+}
+
+.form-title-closelink {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    top: 0;
+    right: 0;
+    height: 30px;
+    width: 30px;
+    color: white;
+    margin: 1rem 1rem 0 0;
+}
+
+    .form-title-closelink:hover {
+        color: #c1c3c7;
+    }
+
+.form-main {
+}

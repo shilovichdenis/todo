@@ -1,0 +1,135 @@
+@import url('displayview.css');
+@import url('modal.css');
+@import url('main.css');
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+    font-size: 14px;
+}
+
+footer {
+}
+
+body {
+}
+
+a {
+    text-decoration: none !important;
+}
+
+ol,
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 1220px;
+}
+
+#edit-dialog, #create-dialog {
+    max-width: 800px !important;
+    margin: 5rem auto;
+}
+
+#delete-dialog {
+    max-width: 400px !important;
+    margin: 3rem auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+table th {
+    vertical-align: middle;
+    text-align: center;
+}
+
+/*main*/
+.task-list {
+    border: 2px solid darkkhaki;
+    max-width: 1000px;
+    font-size: 15px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+    .task-list p {
+        padding: 0 0 0 5px;
+        min-height: 35px;
+        display: grid;
+        grid-template-columns: 0.25fr 5fr 1.5fr 0.75fr 0.5fr;
+        grid-template-rows: auto;
+        font-size: 17px;
+        font-weight: 700;
+        background-color: darkkhaki;
+        border-start-start-radius: 10px;
+        border-start-end-radius: 10px;
+    }
+
+        .task-list p span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    .task-list ul {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+        .task-list ul li {
+            min-height: 35px;
+            display: grid;
+            grid-template-columns: 0.25fr 5fr 1.5fr 0.75fr 0.5fr;
+            grid-template-rows: auto;
+            background-color: lightgoldenrodyellow;
+            border-radius: 10px;
+            /*border: 0.5px solid black;*/
+        }
+
+            .task-list ul li span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .task-list ul li span .li-btn:last-child {
+                    border-start-end-radius: 10px;
+                    border-end-end-radius: 10px;
+                }
+
+
+
+
+.li-title {
+    max-width: 625px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.project-header {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.info div {
+    align-items: center;
+}
