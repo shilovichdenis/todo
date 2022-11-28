@@ -1,4 +1,25 @@
 ﻿.header {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    color: black;
+    position: relative;
+}
+
+.create-project-link, .show-projects-link {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    font-size: 28px;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem;
+}
+
+.show-projects-link {
+    left: 0;
 }
 
 .projects-list {
@@ -16,13 +37,51 @@
         color: white;
     }
 
+.project-hidden-show {
+    opacity: .85;
+}
+
+.project-hidden-hide {
+    display: none;
+}
+
+.project-hidden {
+}
+
 .display-project-link {
     color: white;
 }
 
     .display-project-link:hover {
-        color: #d9aa27;
+        color: #c9aa2a;
     }
+
+.project .create-task-link {
+    margin-right: 4rem;
+}
+
+.delete-project-link, .hide-project-link, .show-project-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 1rem;
+    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    padding: 1px 2px 0 2px;
+}
+
+.hide-project-link, .show-project-link {
+    left: 0 !important;
+}
+
+.complete-all-tasks-link{
+    margin-right: 7rem;
+}
 
 .project-tasks {
 }
@@ -46,3 +105,6 @@
         .project-tasks table th:last-child {
             width: 50px;
         }
+
+
+

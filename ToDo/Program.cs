@@ -3,7 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using ToDo.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    EnvironmentName = Environments.Development
+});
 
 builder.Services.AddRazorPages();
 // Add services to the container.
@@ -48,16 +51,6 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapRazorPages();
 });
-
-app.UseFileServer(new FileServerOptions()
-{
-    FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "node_modules")
-                ),
-    RequestPath = new PathString("/node_modules"),
-    EnableDirectoryBrowsing = false
-});
-
 
 
 app.Run();

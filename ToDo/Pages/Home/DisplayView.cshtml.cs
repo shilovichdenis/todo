@@ -7,11 +7,57 @@ using Task = ToDo.Models.Task;
 using Project = ToDo.Models.Project;
 using ToDo.Data;
 using Microsoft.Build.Evaluation;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace ToDo.Pages
 {
+
+    public enum ErrorTask
+    {
+        [Description("Task not found.")]
+        Exists,
+        [Description("Model is not valid.")]
+        ModelIsNotValid,
+        [Description("Task not found.")]
+        NotFound,
+        [Description("Id is NULL.")]
+        IdIsNull,
+        [Description("Database table is not created.")]
+        DatabaseTableIsNull
+    }
+
+    public enum ErrorProject
+    {
+        [Description("Project not found.")]
+        Exists,
+        [Description("Model is not valid.")]
+        ModelIsNotValid,
+        [Description("Project not found.")]
+        NotFound,
+        [Description("Id is NULL.")]
+        IdIsNull,
+        [Description("Database table is not created. ")]
+        DatabaseTableIsNull
+    }
     public class DisplayView : PageModel
     {
+        private readonly string Error = "ERROR: ";
+        private readonly string Success = "SUCCESS: ";
+
+        private string GetEnumDescription(Enum enumValue)
+        {
+            var field = enumValue.GetType().GetField(enumValue.ToString());
+            if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+            {
+                return attribute.Description;
+            }
+            throw new ArgumentException("Item not found.", nameof(enumValue));
+        }
 
         private readonly ApplicationDbContext _context;
         public DisplayView(ApplicationDbContext context)
@@ -21,89 +67,158 @@ namespace ToDo.Pages
 
         [BindProperty]
         public Project Project { get; set; }
-        public List<Task> Tasks { get; set; }
+        public List<Task>? Tasks { get; set; }
 
         [TempData]
-        public string EditProjectStatusMessage { get; set; }
+        public string? ProjectStatusMessage { get; set; }
         [TempData]
-        public string CompletedTaskStatusMessage { get; set; }
-        [TempData]
-        public string DeletedTaskStatusMessage { get; set; }
+        public string? TaskStatusMessage { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? projectId)
+        public async Task<IActionResult> OnGet(int? id)
         {
-            if (projectId == null || _context.Projects == null)
+            if (id == null || _context.Projects == null)
             {
-                return NotFound();
-            }
-
-            var project = await _context.Projects.FindAsync(projectId);
-            var tasks = await _context.Tasks
-                .Where(t => t.ProjectId == projectId)
-                .OrderByDescending(t => t.Priority)
-                .ToListAsync();
-
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            Project = project;
-            Tasks = tasks;
-
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostEditProjectAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                EditProjectStatusMessage = "Error";
-                Tasks = await _context.Tasks
-                    .Where(t => t.ProjectId == Project.Id)
-                    .OrderByDescending(t => t.Priority)
-                    .ToListAsync();
+                ProjectStatusMessage = Error + GetEnumDescription(ErrorProject.IdIsNull) + " OR " + GetEnumDescription(ErrorProject.DatabaseTableIsNull);
                 return Page();
             }
 
-            _context.Attach(Project).State = EntityState.Modified;
+            var project = await _context.Projects.FindAsync(id);
+            var tasks = await _context.Tasks
+                .Where(t => t.ProjectId == id)
+                .OrderByDescending(t => t.Priority)
+                .ThenBy(t => t.CreatedDate)
+                .ToListAsync();
+
+            if (project == null)
+            {
+                ProjectStatusMessage = Error + GetEnumDescription(ErrorProject.NotFound);
+                return Page();
+            }
+            Project = project;
+            Tasks = tasks;
+            return Page();
+        }
+        public async Task<IActionResult> OnPostEditProject()
+        {
+            if (!ModelState.IsValid)
+            {
+                ProjectStatusMessage = Error + GetEnumDescription(ErrorProject.ModelIsNotValid);
+                Tasks = await _context.Tasks
+                    .Where(t => t.ProjectId == Project.Id)
+                    .OrderByDescending(t => t.Priority)
+                    .ThenBy(t => t.CreatedDate)
+                    .ToListAsync();
+                return Page();
+            }
+            else
+            {
+                try
+                {
+                    _context.Attach(Project).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProjectExists(Project.Id))
+                    {
+                        ProjectStatusMessage = Error + GetEnumDescription(ErrorProject.Exists);
+                        return RedirectToPage(new { projectId = Project.Id });
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                ProjectStatusMessage = "SUCCESS: Project is changed.";
+                await OnGet(Project.Id);
+                return Page();
+            }
+        }
+
+        public async Task<IActionResult> OnPostCompleteTask(int? id, int projectId)
+        {
+            if (id == null || _context.Tasks == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.IdIsNull) + " OR " + GetEnumDescription(ErrorTask.DatabaseTableIsNull);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.NotFound);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            task.isCompleted = true;
+            task.CompletedDate = DateTime.Now;
 
             try
             {
+                _context.Attach(task).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProjectExists(Project.Id))
+                if (!TaskExists(task.Id))
                 {
-                    return NotFound();
+                    TaskStatusMessage = Error + GetEnumDescription(ErrorTask.Exists);
+                    return RedirectToPage(new { id = projectId });
                 }
                 else
                 {
                     throw;
                 }
             }
-
-            EditProjectStatusMessage = "Your data is changed.";
-            return RedirectToPage(new { projectId = Project.Id });
+            TaskStatusMessage = "SUCCESS: Task completed.";
+            return RedirectToPage(new { id = projectId });
         }
 
-        public async Task<IActionResult> OnPostCompleteTaskAsync(int? taskId)
+        public async Task<IActionResult> OnPostCompleteAllTasks(int projectId)
         {
-            if (taskId == null || _context.Tasks == null)
+            var tasks = await _context.Tasks.Where(t => t.ProjectId == projectId).Where(t => !t.isCompleted).ToListAsync();
+
+            if (tasks == null)
             {
-                return NotFound();
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.NotFound);
+                return RedirectToPage(new { id = projectId });
             }
 
-            var task = await _context.Tasks.FindAsync(taskId);
-            task.isCompleted = true;
-            task.CompletedDate = DateTime.Now.ToString();
+            foreach (var task in tasks)
+            {
+                task.isCompleted = true;
+                task.CompletedDate = DateTime.Now;
+                _context.Attach(task).State = EntityState.Modified;
+            }
+            await _context.SaveChangesAsync();
 
-            _context.Attach(task).State = EntityState.Modified;
+            TaskStatusMessage = "SUCCESS: Tasks completed.";
+            return RedirectToPage(new { id = projectId });
+        }
+
+        public async Task<IActionResult> OnPostUncompleteTask(int? id, int projectId)
+        {
+            if (id == null || _context.Tasks == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.IdIsNull) + " OR " + GetEnumDescription(ErrorTask.DatabaseTableIsNull);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.NotFound);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            task.isCompleted = false;
+            task.CompletedDate = null;
 
             try
             {
+                _context.Attach(task).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -117,25 +232,127 @@ namespace ToDo.Pages
                     throw;
                 }
             }
-            CompletedTaskStatusMessage = "Your task completed.";
-            return RedirectToPage(new { projectId = task.ProjectId });
+
+            TaskStatusMessage = "SUCCESS: Task field changed to UNCOMPLITED.";
+            return RedirectToPage(new { id = projectId });
         }
-        public async Task<IActionResult> OnPostDeleteTaskAsync(int? taskId)
+
+
+        public async Task<IActionResult> OnPostEditTask(int? id, int projectId, Task task)
+        {
+            if (id != task.Id)
+            {
+                TaskStatusMessage = "ERROR: Id not equal model Id.";
+                return RedirectToPage(new { id = projectId });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors =
+                        from value in ModelState.Values
+                        where value.ValidationState == ModelValidationState.Invalid
+                        select value;
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.ModelIsNotValid);
+
+                foreach (var (index, error) in errors.Select((e, i) => (i, e)))
+                {
+                    TaskStatusMessage += "Error[" + index + "]: " + error.Errors[0].ErrorMessage + " | " + error.Errors.Count() + "\n";
+                }
+
+                TaskStatusMessage += " | " + task.Id + " | " + task.ProjectId + " | " + task.Priority + " | " + task.Title + " | " + task.CreatedDate + " | " + task.CompletedDate + " | " + task.isCompleted + " Task UNCHANGED";
+                return RedirectToPage(new { id = projectId });
+
+            }
+            else
+            {
+                try
+                {
+                    _context.Attach(task).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!TaskExists(task.Id))
+                    {
+                        TaskStatusMessage = Error + GetEnumDescription(ErrorTask.Exists);
+                        return RedirectToPage(new { id = projectId });
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                TaskStatusMessage = "SUCCESS: Task changed.";
+                return RedirectToPage(new { id = projectId });
+            }
+        }
+
+        public async Task<IActionResult> OnPostEditTaskDescription(int? id, int projectId, string textAreaValue)
+        {
+            if (id == null || _context.Tasks == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.IdIsNull) + " OR " + GetEnumDescription(ErrorTask.DatabaseTableIsNull);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.NotFound);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            task.Description = textAreaValue;
+
+            try
+            {
+                _context.Attach(task).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TaskExists(task.Id))
+                {
+                    TaskStatusMessage = Error + GetEnumDescription(ErrorTask.Exists);
+                    return RedirectToPage(new { id = projectId });
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            TaskStatusMessage = "SUCCESS: Task description changed.";
+            return RedirectToPage(new { id = projectId });
+
+        }
+        public async Task<IActionResult> OnPostDeleteTask(int? id, int projectId)
         {
             if (_context.Tasks == null)
             {
-                return NotFound();
+                TaskStatusMessage = "ERROR: Database don't has table.";
+                return RedirectToPage(new { id = projectId });
             }
-            var task = await _context.Tasks.FindAsync(taskId);
-            if (task != null)
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                TaskStatusMessage = Error + GetEnumDescription(ErrorTask.NotFound);
+                return RedirectToPage(new { id = projectId });
+            }
+
+            try
             {
                 _context.Tasks.Remove(task);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
             }
 
-            await _context.SaveChangesAsync();
-
-            DeletedTaskStatusMessage = "Your task deleted.";
-            return RedirectToPage(new { projectId = task.ProjectId });
+            TaskStatusMessage = "SUCCESS: Task deleted.";
+            return RedirectToPage(new { id = projectId });
         }
 
         private bool ProjectExists(int id)

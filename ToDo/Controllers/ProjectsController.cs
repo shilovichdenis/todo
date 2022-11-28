@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ToDo.Data;
 using ToDo.Models;
-using ToDo.Models.View;
 
 namespace ToDo.Controllers
 {
@@ -47,35 +46,10 @@ namespace ToDo.Controllers
             return View(project);
         }
 
-        // GET: Projects/DetailsView/5
-        [HttpGet]
-        public async Task<IActionResult> DetailsView(int? projectId)
-        {
-            if (projectId == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects
-                .Include(p => p.Tasks.OrderByDescending(t => t.Priority))
-                .FirstOrDefaultAsync(m => m.Id == projectId);
-            var tasks = await _context.Tasks.Where(t => t.ProjectId == projectId).ToListAsync();
-            var view = new DisplayView() { Project = project, Tasks = tasks, StatusMessage = String.Empty };
-
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-            ViewData["Action"] = "DetailsView";
-            ViewData["Conroller"] = "Projects";
-            return View(view);
-        }
-
         // GET: Projects/Create
         public IActionResult Create()
         {
-            return View();
+            return PartialView();
         }
 
         // POST: Projects/Create
@@ -89,9 +63,80 @@ namespace ToDo.Controllers
             {
                 _context.Add(project);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Main", "Home");
             }
-            return View(project);
+            return PartialView(project);
+        }
+
+        public async Task<IActionResult> Hide(int? id)
+        {
+            if (id == null || _context.Projects == null)
+            {
+                return NotFound();
+            }
+
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            project.isHidden = true;
+            try
+            {
+                _context.Update(project);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProjectExists(project.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction("Main", "Home");
+        }
+
+        public async Task<IActionResult> Show(int? id)
+        {
+            if (id == null || _context.Projects == null)
+            {
+                return NotFound();
+            }
+
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            project.isHidden = false;
+            try
+            {
+                _context.Update(project);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProjectExists(project.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction("Main", "Home");
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> _Edit(int id, Project project)
+        {
+            return PartialView(project);
         }
 
         // GET: Projects/Edit/5
@@ -108,6 +153,7 @@ namespace ToDo.Controllers
                 return NotFound();
             }
             return View(project);
+
         }
 
         // POST: Projects/Edit/5
@@ -144,69 +190,9 @@ namespace ToDo.Controllers
             }
             return View(project);
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DetailsView(int projectId, DisplayView view)
-        {
-            if (projectId != view.Project.Id)
-            {
-                return NotFound();
-            }
-            if (!ModelState.IsValid)
-            {
-                view.StatusMessage = "Error";
-                return View(view);
-            }
 
-            try
-            {
-                _context.Update(view.Project);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProjectExists(view.Project.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            view.StatusMessage = "Success";
-            return RedirectToAction("DetailsView", new { projectId = view.Project.Id });
-        }
 
-        public async Task<IActionResult> CompleteTask(int? taskId)
-        {
-            if (taskId == null || _context.Tasks == null)
-            {
-                return NotFound();
-            }
 
-            var task = await _context.Tasks.FindAsync(taskId);
-            task.isCompleted = true;
-            task.CompletedDate = DateTime.Now.ToString();
-
-            try
-            {
-                _context.Update(task);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskExists(task.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToPage("/Home/DisplayView", new { projectId = task.ProjectId });
-        }
 
 
         // GET: Projects/Delete/5
@@ -224,7 +210,7 @@ namespace ToDo.Controllers
                 return NotFound();
             }
 
-            return View(project);
+            return PartialView(project);
         }
 
         // POST: Projects/Delete/5
@@ -243,7 +229,7 @@ namespace ToDo.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Main", "Home");
         }
 
         private bool ProjectExists(int id)

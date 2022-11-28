@@ -3,104 +3,114 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+<link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+
 <section class="modal-forms">
-    <div id="create-task-form" class="modal"
+    <div id="modal-form" class="modal"
          aria-hidden="true"
          role="dialog"
          data-keyboard="true">
-        <div id="create-dialog" class="modal-dialog">
-        </div>
-    </div>
-    <div id="delete-task-form" class="modal"
-         aria-hidden="true"
-         role="dialog"
-         data-keyboard="true">
-        <div id="delete-dialog" class="modal-dialog">
+        <div id="modal-dialog" class="modal-dialog">
+            dsada
         </div>
     </div>
 </section>
 <section class="header">
     <h1 class="text-center">Projects</h1>
+    <a class="show-projects-link show-link bi bi-eye" id="hidden-projects-link"></a>
+    <input type="checkbox" id="hidden-projects-checkbox" checked hidden />
+    <a class="create-project-link create-link modal-link bi bi-plus"
+       asp-action="Create"
+       asp-controller="Projects"
+       data-bs-toggle="modal"
+       data-bs-target="#modal-form"></a>
 </section>
 <section class="projects-list">
-    @if (Model.Count() != 0)
+    @foreach (var (indexProject, project) in Model.Select((i, p) => (p, i)))
     {
-        foreach (var (indexProject, project) in Model.Select((i, p) => (p, i)))
+        var statusClass = string.Empty;
+        if (project.isHidden)
         {
-            <div class="project mt-4">
-                <div class="project-title h4 text-center">
-                    <a class="display-project-link" asp-page="/Home/DisplayView" asp-route-projectid="@project.Id">@project.Name.ToUpper()</a>
-                    <a class="create-task-link create-link bi bi-file-earmark-plus"
+            statusClass = "project-hidden project-hidden-hide";
+        }
+
+        <div class="project mt-4 @statusClass">
+            <div class="project-title h4 text-center">
+                <a class="display-project-link" asp-page="/Home/DisplayView" asp-route-id="@project.Id">@project.Name.ToUpper()</a>
+                @if (project.isHidden)
+                {
+                    <a class="show-project-link show-link title-link bi bi-eye"
+               asp-action="Show"
+               asp-controller="Projects"
+               asp-route-id=@project.Id></a>
+                }
+                else
+                {
+                    <a class="hide-project-link hide-link title-link bi bi-eye-slash"
+               asp-action="Hide"
+               asp-controller="Projects"
+               asp-route-id=@project.Id></a>
+                }
+                <a class="create-task-link create-link modal-link title-link bi bi-plus"
                asp-action="Create"
                asp-controller="Tasks"
                asp-route-projectId="@project.Id"
                data-bs-toggle="modal"
-               data-bs-target="#create-task-form"></a>
-                </div>
-                <div class="project-tasks">
-                    <table class="table table-bordered text-center align-middle">
-                        <thead>
-                            <tr>
-                                <th>№</th>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Priority</th>
-                                <th>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (project.Tasks.Count() != 0)
-                            {
-                                @foreach (var (indexTask, task) in project.Tasks.Select((i, t) => (t, i)))
-                                {
-                                    <tr>
-                                        <td>@(indexTask + 1)</td>
-                                        <td>@task.Title</td>
-                                        <td>
-                                            <span class="date created-date">
-                                                @task.CreatedDate
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
-                                                @task.Priority
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="btn-box">
-                                                <form method="post">
-                                                    <input type="hidden" value="@task.Id" name="taskId" id="complete-task-id" />
-                                                    <button class="complete-task-link table-btn bi bi-file-earmark-check" type="submit" asp-page-handler="CompleteTask"></button>
-                                                </form>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
+               data-bs-target="#modal-form"></a>
+                <a class="delete-project-link delete-link modal-link title-link bi bi-x"
+               asp-action="Delete"
+               asp-controller="Projects"
+               asp-route-id="@project.Id"
+               data-bs-toggle="modal"
+               data-bs-target="#modal-form"></a>
             </div>
-        }
+            <div class="project-tasks">
+                <table class="table table-bordered text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Title</th>
+                            <th>Date</th>
+                            <th>Priority</th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (project.Tasks.Count() != 0)
+                        {
+                            @foreach (var (indexTask, task) in project.Tasks.Select((i, t) => (t, i)))
+                            {
+                                <tr>
+                                    <td>@(indexTask + 1)</td>
+                                    <td>@task.Title</td>
+                                    <td>
+                                        <span class="date created-date">
+                                            @task.CreatedDate.Value.ToShortDateString() @task.CreatedDate.Value.ToShortTimeString()
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                            @task.Priority
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="btn-box">
+                                            <form asp-action="CompleteTask" asp-controller="Tasks" asp-route-id="@task.Id">
+                                                <button class="complete-task-link complete-link table-link bi bi-check2-square" type="submit"></button>
+                                            </form>
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     }
 </section>
 
+
 @section Scripts{
-    <script>
-        $(document).ready(function () {
-            $(".create-link").click(function (e) {
-                $.get(this.href, function (data) {
-                    $('#create-dialog').html(data);
-                });
-            });
-        });
-        $(document).ready(function () {
-            $(".delete-link").click(function (e) {
-                $.get(this.href, function (data) {
-                    $('#delete-dialog').html(data);
-                });
-            });
-        });
-    </script>
 }

@@ -6,21 +6,26 @@
         <a class="form-title-closelink bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
     </div>
     <div class="px-4 pb-2 pt-3 form-main">
-        <form asp-action="Edit">
+        <form method="post" asp-page="/Home/DisplayView" asp-page-handler="EditTask" id="edit-task-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="CreatedDate" class="form-control" value="@DateTime.Now.ToString()" />
-            <input type="hidden" asp-for="ProjectId" class="form-control" />
-            <input type="hidden" class="form-check-input" asp-for="isCompleted" />
+            <input asp-for="Id" hidden />
+            <input asp-for="ProjectId" hidden />
+            <input asp-for="isCompleted" hidden />
+            <input type="datetime-local" asp-for="CreatedDate" id="date" hidden />
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
+                <input asp-for="Title" class="form-control" autocomplete="off"/>
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Priority" class="control-label"></label>
                 <select asp-for="Priority" class="form-control" asp-items="@Html.GetEnumSelectList<Priority>()"></select>
                 <span asp-validation-for="Priority" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" autocomplete="off"/>
+                <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

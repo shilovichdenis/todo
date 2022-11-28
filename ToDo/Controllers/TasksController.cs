@@ -73,8 +73,52 @@ namespace ToDo.Controllers
             return PartialView(task);
         }
 
-        // GET: Tasks/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Complete(int? id)
+        {
+            if (id == null || _context.Tasks == null)
+            {
+                return NotFound();
+            }
+
+            var task = await _context.Tasks.FindAsync(id);
+            task.isCompleted = true;
+            task.CompletedDate = DateTime.Now;
+
+            try
+            {
+                _context.Update(task);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TaskExists(task.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction("Main", "Home");
+        }
+
+        public async Task<IActionResult> CompleteAll(int? projectId)
+        {
+            var tasks = await _context.Tasks.Where(t => t.ProjectId == projectId).Where(t => !t.isCompleted).ToListAsync();
+            foreach (var task in tasks)
+            {
+                task.isCompleted = true;
+                task.CompletedDate = DateTime.Now;
+                _context.Update(task);
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Main", "Home");
+        }
+
+        // GET: Tasks/_Edit/5
+        [HttpGet]
+        public async Task<IActionResult> _Edit(int? id)
         {
             if (id == null || _context.Tasks == null)
             {
@@ -89,44 +133,43 @@ namespace ToDo.Controllers
             return PartialView(task);
         }
 
-        // POST: Tasks/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Task task)
-        {
-            if (id != task.Id)
-            {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(task);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TaskExists(task.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name", task.ProjectId);
-            return PartialView(task);
-        }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, Task task)
+        //{
+        //    if (id != task.Id)
+        //    {
+        //        return NotFound();
+        //    }
 
-        // GET: Tasks/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            _context.Update(task);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!TaskExists(task.Id))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
+        //        return RedirectToPage("/Home/DisplayView", new { projectId = task.ProjectId });
+        //    }
+        //    ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name", task.ProjectId);
+        //    return PartialView(task);
+        //}
+
+        // GET: Tasks/_Delete/5
+        [HttpGet]
+        public async Task<IActionResult> _Delete(int? id)
         {
             if (id == null || _context.Tasks == null)
             {
@@ -145,23 +188,23 @@ namespace ToDo.Controllers
         }
 
         // POST: Tasks/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Tasks == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Tasks'  is null.");
-            }
-            var task = await _context.Tasks.FindAsync(id);
-            if (task != null)
-            {
-                _context.Tasks.Remove(task);
-            }
+        //[HttpPost, ActionName("Delete")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> DeleteConfirmed(int id)
+        //{
+        //    if (_context.Tasks == null)
+        //    {
+        //        return Problem("Entity set 'ApplicationDbContext.Tasks'  is null.");
+        //    }
+        //    var task = await _context.Tasks.FindAsync(id);
+        //    if (task != null)
+        //    {
+        //        _context.Tasks.Remove(task);
+        //    }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Main", "Home");
-        }
+        //    await _context.SaveChangesAsync();
+        //    return RedirectToAction("Main", "Home");
+        //}
 
         private bool TaskExists(int id)
         {

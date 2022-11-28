@@ -1,45 +1,87 @@
 ﻿//#region DisplayView
 
-//DisableUnDisableInput
 $(document).ready(function () {
-    $('#edit-project-link').click(function () {
+    var date = new Date();
+    date = date.getTime() + (date.getTimezoneOffset() * 60000) + (3600000 * 6);
+    const dateTimeNow = new Date(date).toISOString().slice(0, 16);
+    $('#date').val(dateTimeNow);
+});
+
+$(document).ready(function () {
+
+    //LockUnlockFormProject
+    $('#lock-form-project-link').click(function () {
         if (!$('#edit-project-form :input').prop('disabled')) {
             $('#edit-project-form :input').prop('disabled', true);
+            $(this).removeClass('bi-unlock unlock-link').addClass('bi-lock lock-link');
         }
         else {
             $('#edit-project-form :input').prop('disabled', false);
+            $(this).removeClass('bi-lock lock-link').addClass('bi-unlock unlock-link');
         }
     });
-});
 
-$(document).ready(function () {
-    $(".create-link").click(function (e) {
+    //ModalLink
+    $(".modal-link").click(function () {
         $.get(this.href, function (data) {
-            $('#create-dialog').html(data);
+            $('#modal-dialog').html(data);
         });
     });
-});
-$(document).ready(function () {
-    $(".edit-link").click(function (e) {
-        $.get(this.href, function (data) {
-            $('#edit-dialog').html(data);
-        });
+
+    //HideShowProjects
+    $('#hidden-projects-link').click(function () {
+        var hiddenVal = true;
+        if ($('#hidden-projects-checkbox').is(':checked')) {
+            $('#hidden-projects-link').removeClass('bi-eye show-link').addClass('bi-eye-slash hide-link');
+            $('.project-hidden').removeClass('project-hidden-hide').addClass('project-hidden-show');
+            $('#hidden-projects-checkbox').prop('checked', false);
+            hiddenVal = false;
+        }
+        else {
+            $('.project-hidden').removeClass('project-hidden-show').addClass('project-hidden-hide');
+            $('#hidden-projects-link').removeClass('bi-eye-slash hide-link').addClass('bi-eye show-link');
+            $('#hidden-projects-checkbox').prop('checked', true);
+            hiddenVal = true;
+        }
+        //$.ajax({
+        //    type: 'GET',
+        //    url: "Home/_GetProjects",
+        //    data: { hidden: hiddenVal },
+        //    success: function (data) {
+        //        $(".projects-list").html(data);
+        //    }
+        //});
     });
-});
-//$(document).ready(function () {
-//    $(".delete-link").click(function (e) {
-//        $.get(this.href, function (data) {
-//            $('#delete-dialog').html(data);
-//        });
-//    });
-//});
 
+    //ShowDescriptionTask
+    $('.taskTitle').click(function () {
+        var taskId = $(this).data("taskid");
+        var descrId = $('#description-' + taskId);
+        var textAreaId = $('#textarea-description-' + taskId);
+        if (descrId.hasClass('tr-nonactive')) {
+            descrId.removeClass('tr-nonactive').addClass('tr-active');
+        }
+        else {
+            descrId.removeClass('tr-active').addClass('tr-nonactive');
+            textAreaId.prop('disabled', true);
+        }
+    });
 
-//DeleteTask
-$(document).ready(function () {
-    $(".delete-task-link").click(function () {
-        var taskid = $(this).data("taskId");
-        $('#delete-task-id').val(taskid);
+    //LockUnlockDescriptionTask
+    $('.lock-description-task').click(function () {
+        var taskId = $(this).data("taskid");
+        var descrBtn = $(`#description-${taskId} :button`);
+        var descrTextArea = $('textarea', `#description-${taskId}`);
+        if (descrTextArea.prop('disabled')) {
+            $(this).removeClass('bi-lock lock-link').addClass('bi-unlock unlock-link');
+            descrTextArea.prop('disabled', false);
+            descrBtn.prop('disabled', false);
+        }
+        else {
+            $(this).removeClass('bi-unlock unlock-link').addClass('bi-lock lock-link');
+            descrTextArea.prop('disabled', true);
+            descrBtn.prop('disabled', true);
+        }
     });
 });
 

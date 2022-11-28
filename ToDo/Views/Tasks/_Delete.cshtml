@@ -1,0 +1,19 @@
+﻿@model ToDo.Models.Task
+
+<section class="modal-content">
+    <div class="h4 text-center form-title">
+        DELETE TASK
+        <a class="form-title-closelink mt-3 bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
+    </div>
+    <div class="px-3 pt-1 pb-3 text-center">
+        <span class="h6">
+            Are you sure you want to delete the task?
+        </span>
+        <form method="post" class="d-flex justify-content-center align-items-center mt-4" asp-page="/Home/DisplayView" asp-page-handler="DeleteTask" id="delete-task-form">
+            <input type="hidden" value="@Model.Id" asp-for="Id" />
+            <input type="hidden" value="@Model.ProjectId" asp-for="ProjectId" />
+            <input class="btn btn-danger me-1" type="submit" value="Delete" />
+            <a class="btn btn-secondary ms-1" href="#" data-bs-dismiss="modal">Cancel</a>
+        </form>
+    </div>
+</section>

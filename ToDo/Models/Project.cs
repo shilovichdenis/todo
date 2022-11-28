@@ -6,27 +6,25 @@ namespace ToDo.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string CreatedDate { get; set; }
-        public ProgrammingLanguage ProgrammingLanguage { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public bool isHidden { get; set; }
         public Type Type { get; set; }
+        public string? Description { get; set; }
         public List<Task>? Tasks { get; set; }
 
     }
-    public enum ProgrammingLanguage
-    {
-        CPlusPlus = 0,
-        CSharp = 1,
-        Java = 2,
-        Python = 3,
-        HTML = 4,
-        C1 = 5
-    }
     public enum Type
     {
-        Web = 0,
-        Console = 1,
-        Desktop = 2,
-        Mobile = 3
+        Website,
+        Console,
+        Desktop,
+        Game,
+        Mobile,
+        Video,
+        Music,
+        Doc,
+        Table,
+        Design
     }
 
 }

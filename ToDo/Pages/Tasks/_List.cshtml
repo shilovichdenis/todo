@@ -1,0 +1,127 @@
+﻿@model IEnumerable<ToDo.Models.Task>
+@{
+
+}
+<div class="tasks-list">
+    <table class="table table-bordered text-center align-middle">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Priority</th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="5"><b>UNFINISHED</b></td>
+            </tr>
+            @if (Model != null)
+            {
+                foreach (var (index, task) in Model.Where(t => !t.isCompleted).Select((i, t) => (t, i)))
+                {
+                    <tr>
+                        <td>
+                            @(index + 1)
+                        </td>
+                        <td>
+                            <span class="taskTitle" data-taskid="@task.Id">@task.Title</span>
+                            <input type="hidden" value="@task.Id" class="taskId" />
+                        </td>
+                        <td>
+                            <span class="date created-date">
+                                @task.CreatedDate.Value.ToShortDateString() @task.CreatedDate.Value.ToShortTimeString()
+                            </span>
+                        </td>
+                        <td>
+                            <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                @task.Priority
+                            </span>
+                        </td>
+                        <td>
+                            <span class="btn-box">
+                                <form method="post" asp-page="/Home/DisplayView" asp-page-handler="CompleteTask" id="complete-task-form">
+                                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                    <input type="hidden" value="@task.Id" name="Id" />
+                                    <input type="hidden" value="@task.ProjectId" name="projectId" />
+                                    <button class="complete-task-link complete-link table-link bi bi-file-earmark-check" type="submit"></button>
+                                </form>
+                                <a class="edit-task-link edit-link modal-link table-link bi bi-file-earmark-medical"
+                           asp-action="_Edit"
+                           asp-controller="Tasks"
+                           asp-route-id="@task.Id"
+                           data-bs-toggle="modal"
+                           data-bs-target="#modal-form"></a>
+                                <a class="delete-task-link delete-link modal-link table-link bi bi-file-earmark-x"
+                           asp-action="_Delete"
+                           asp-controller="Tasks"
+                           asp-route-id="@task.Id"
+                           data-bs-toggle="modal"
+                           data-bs-target="#modal-form"></a>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="task-description-tr tr-nonactive" id="description-@task.Id">
+                        <td colspan="5">
+                            <form method="post" asp-page="/Home/DisplayView" asp-page-handler="EditTaskDescription" id="edit-task-description-form">
+                                <input type="hidden" value="@task.Id" name="Id"/>
+                                <input type="hidden" value="@task.ProjectId" name="projectId" />
+                                <textarea name="textAreaValue" asp-for="@task.Description" class="form-control textarea-description" disabled id="textarea-description-@task.Id"></textarea>
+                                <a class="lock-description-task lock-link table-link bi bi-lock" href="#" data-taskid="@task.Id"></a>
+                                <button class="submit-description-task description-link table-link bi bi-save2" type="submit" disabled></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            <tr>
+                <td colspan="5"><b>FINISHED</b></td>
+            </tr>
+            @if (Model != null)
+            {
+                foreach (var (index, task) in Model.Where(t => t.isCompleted).OrderByDescending(t => t.CompletedDate).Select((i, t) => (t, i)))
+                {
+                    <tr>
+                        <td>@(index + 1)</td>
+                        <td>@task.Title</td>
+                        <td>
+                            <span class="date completed-date">
+                                @task.CompletedDate.Value.ToShortDateString() @task.CompletedDate.Value.ToShortTimeString()
+                            </span>
+                        </td>
+                        <td>
+                            <span class="priority @("priority-" + task.Priority.ToString().ToLower())">
+                                @task.Priority
+                            </span>
+                        </td>
+                        <td>
+                            <span class="btn-box">
+                                <form method="post" asp-page="/Home/DisplayView" asp-page-handler="UncompleteTask" id="uncomplete-task-form">
+                                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                    <input type="hidden" value="@task.Id" name="Id" />
+                                    <input type="hidden" value="@task.ProjectId" name="projectId" />
+                                    <button class="uncomplete-task-link uncomplete-link table-link bi bi-file-earmark-minus" type="submit"></button>
+                                </form>
+                                <a class="edit-task-link edit-link modal-link table-link bi bi-file-earmark-medical"
+                           asp-action="_Edit"
+                           asp-controller="Tasks"
+                           asp-route-id="@task.Id"
+                           data-bs-toggle="modal"
+                           data-bs-target="#modal-form"></a>
+                                <a class="delete-task-link delete-link modal-link table-link bi bi-file-earmark-x"
+                           asp-action="_Delete"
+                           asp-controller="Tasks"
+                           asp-route-id="@task.Id"
+                           data-bs-toggle="modal"
+                           data-bs-target="#modal-form"></a>
+
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

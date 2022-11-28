@@ -13,6 +13,5 @@ namespace ToDo.Data
         }
         public DbSet<Task> Tasks { get; set; }
         public DbSet<Project> Projects { get; set; }
-        public DbSet<Information> Informations { get; set; }
     }
 }

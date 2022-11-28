@@ -16,9 +16,9 @@
     "tests"
   ],
   "dependencies": {
-    "jquery-validation-unobtrusive": "^4.0.0",
-    "jquery-validation": "^1.19.5",
+    "bootstrap": "^5.2.3",
     "jquery": "^3.6.1",
-    "bootstrap": "^5.2.2"
+    "jquery-validation-unobtrusive": "^4.0.0",
+    "jquery-validation": "^1.19.5"
   }
 }

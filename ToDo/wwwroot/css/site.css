@@ -1,6 +1,4 @@
-@import url('displayview.css');
 @import url('modal.css');
-@import url('main.css');
 
 * {
     -moz-box-sizing: border-box;
@@ -21,9 +19,16 @@ html {
 }
 
 footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
 }
 
 body {
+    padding-bottom: 80px;
 }
 
 a {
@@ -38,19 +43,11 @@ ul {
 }
 
 .container {
+    position: relative;
     margin: 0 auto;
     max-width: 1220px;
 }
 
-#edit-dialog, #create-dialog {
-    max-width: 800px !important;
-    margin: 5rem auto;
-}
-
-#delete-dialog {
-    max-width: 400px !important;
-    margin: 3rem auto;
-}
 
 .form-group {
     margin-bottom: 20px;
@@ -61,75 +58,189 @@ table th {
     text-align: center;
 }
 
-/*main*/
-.task-list {
-    border: 2px solid darkkhaki;
-    max-width: 1000px;
-    font-size: 15px;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-    .task-list p {
-        padding: 0 0 0 5px;
-        min-height: 35px;
-        display: grid;
-        grid-template-columns: 0.25fr 5fr 1.5fr 0.75fr 0.5fr;
-        grid-template-rows: auto;
-        font-size: 17px;
-        font-weight: 700;
-        background-color: darkkhaki;
-        border-start-start-radius: 10px;
-        border-start-end-radius: 10px;
-    }
-
-        .task-list p span {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-    .task-list ul {
-        display: grid;
-        gap: 0.5rem;
-    }
-
-        .task-list ul li {
-            min-height: 35px;
-            display: grid;
-            grid-template-columns: 0.25fr 5fr 1.5fr 0.75fr 0.5fr;
-            grid-template-rows: auto;
-            background-color: lightgoldenrodyellow;
-            border-radius: 10px;
-            /*border: 0.5px solid black;*/
-        }
-
-            .task-list ul li span {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-                .task-list ul li span .li-btn:last-child {
-                    border-start-end-radius: 10px;
-                    border-end-end-radius: 10px;
-                }
-
-
-
-
-.li-title {
-    max-width: 625px;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-all;
-}
-
-.project-header {
-    font-size: 24px;
-    font-weight: 600;
-}
-
-.info div {
+.title-link {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 1rem;
+    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    padding: 1px 2px 0 2px;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    background-color: transparent;
+    border: unset;
+}
+
+.table-link {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    background-color: transparent;
+    border: 2px solid white;
+}
+
+.btn-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-box a, .btn-box button {
+        margin-right: 0.5rem;
+        margin-left: 0.5rem;
+    }
+
+.complete-link {
+    border-color: #579925;
+    color: #579925;
+}
+
+    .complete-link:hover {
+        color: white;
+        background-color: #579925;
+    }
+
+.uncomplete-link {
+    border-color: #f57b42;
+    color: #f57b42;
+}
+
+    .uncomplete-link:hover {
+        color: white;
+        background-color: #f57b42;
+    }
+
+.create-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #ded118;
+    color: #ded118;
+}
+
+    .create-link:hover {
+        color: white;
+        background-color: #ded118;
+    }
+
+.edit-link {
+    border-color: #2889de;
+    color: #2889de;
+}
+
+    .edit-link:hover {
+        color: white;
+        background-color: #2889de;
+    }
+
+
+.delete-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #c41a1a;
+    color: #c41a1a;
+}
+
+    .delete-link:hover {
+        color: white;
+        background-color: #c41a1a;
+    }
+
+
+.info-link {
+    border-color: #c9aa2a;
+    color: #c9aa2a;
+}
+
+    .info-link:hover {
+        color: white;
+        background-color: #c9aa2a;
+    }
+
+.hide-link {
+    border-color: #0acf9d;
+    color: #0acf9d;
+    /*color: #69a305;*/
+}
+
+    .hide-link:hover {
+        color: white;
+        background-color: #055440;
+    }
+
+.show-link {
+    border-color: #055440;
+    color: #055440;
+    /*color: #90de09;*/
+}
+
+    .show-link:hover {
+        color: white;
+        background-color: #0acf9d;
+    }
+
+.lock-link {
+    border-color: #0acf9d;
+    color: #0acf9d;
+}
+
+    .lock-link:hover {
+        color: white;
+        background-color: #055440;
+    }
+
+.unlock-link {
+    border-color: #055440;
+    color: #055440;
+}
+
+    .unlock-link:hover {
+        color: white;
+        background-color: #0acf9d;
+    }
+
+
+table td span {
+    display: flex;
+    flex-direction: column;
+}
+
+.priority {
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    margin: 0;
+    border: 2px solid;
+    font-weight: 600;
+    color: white;
+}
+
+.priority-critical {
+    border-color: #b51607;
+    background-color: #b51607;
+}
+
+.priority-high {
+    border-color: #e02204;
+    background-color: #e02204;
+}
+
+.priority-medium {
+    border-color: #e08719;
+    background-color: #e08719;
+}
+
+.priority-low {
+    border-color: #e8c40e;
+    background-color: #e8c40e;
 }
