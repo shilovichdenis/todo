@@ -2,48 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ToDo.Data;
 using ToDo.Models;
+using ToDo.Models.ViewComponents;
+using ToDo.Services.ProjectService;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ToDo.Controllers
 {
     public class ProjectsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IProjectService _projectService;
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, IProjectService projectService)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
+            _projectService = projectService;
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Projects.ToListAsync());
+            return View(await _projectService.GetAllProjects());
         }
 
         // GET: Projects/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Projects == null)
+            var result = _projectService.GetProject(id);
+            if (result == null)
             {
                 return NotFound();
             }
-
-            var project = await _context.Projects
-                .Include(p => p.Tasks.OrderByDescending(t => t.Priority))
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            return View(project);
+            return View(result);
         }
 
         // GET: Projects/Create
@@ -53,19 +52,18 @@ namespace ToDo.Controllers
         }
 
         // POST: Projects/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Project project)
+        public async Task<IActionResult> Create(ProjectViewComponent component)
         {
-            if (ModelState.IsValid)
+            var result = _projectService.CreateProject(component);
+            if (result == null)
             {
-                _context.Add(project);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Main", "Home");
+                return PartialView(component);
             }
-            return PartialView(project);
+
+            return RedirectToAction("Main", "Home");
+
         }
 
         public async Task<IActionResult> Hide(int? id)
@@ -88,14 +86,14 @@ namespace ToDo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProjectExists(project.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                //if (!ProjectExists(project.Id))
+                //{
+                //    return NotFound();
+                //}
+                //else
+                //{
+                //    throw;
+                //}
             }
             return RedirectToAction("Main", "Home");
         }
@@ -120,14 +118,14 @@ namespace ToDo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProjectExists(project.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                //if (!ProjectExists(project.Id))
+                //{
+                //    return NotFound();
+                //}
+                //else
+                //{
+                //    throw;
+                //}
             }
             return RedirectToAction("Main", "Home");
         }
@@ -142,74 +140,35 @@ namespace ToDo.Controllers
         // GET: Projects/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.Projects == null)
+            var result = await _projectService.GetProject(id);
+            if (result == null)
             {
                 return NotFound();
             }
-
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-            return View(project);
-
+            return View(result);
         }
 
         // POST: Projects/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Project project)
+        public async Task<IActionResult> Edit(int? id, Project project)
         {
-            if (id != project.Id)
+            var result = _projectService.UpdateProject(id, project);
+            if (result == null)
             {
-                return NotFound();
+                return PartialView(project);
             }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProjectExists(project.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction("Details");
-            }
-            return View(project);
+            return RedirectToAction("Main", "Home");
         }
-
-
-
-
 
         // GET: Projects/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var project = await _projectService.GetProject(id);
             if (project == null)
             {
                 return NotFound();
             }
-
             return PartialView(project);
         }
 
@@ -218,28 +177,13 @@ namespace ToDo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Projects == null)
+            var result = await _projectService.DeleteProject(id);
+            if (!result)
             {
-                return Problem("Entity set 'ApplicationDbContext.Project'  is null.");
-            }
-            var project = await _context.Projects.FindAsync(id);
-            if (project != null)
-            {
-                _context.Projects.Remove(project);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction("Main", "Home");
-        }
-
-        private bool ProjectExists(int id)
-        {
-            return _context.Projects.Any(e => e.Id == id);
-        }
-
-        private bool TaskExists(int id)
-        {
-            return _context.Tasks.Any(e => e.Id == id);
         }
     }
 }

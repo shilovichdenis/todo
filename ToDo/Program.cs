@@ -1,7 +1,12 @@
+global using ToDo.Models;
+global using Task = ToDo.Models.Task;
+global using Project = ToDo.Models.Project;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using ToDo.Data;
+using ToDo.Services.ProjectService;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -18,7 +23,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddScoped<IProjectService, ProjectService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

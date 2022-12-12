@@ -1,4 +1,4 @@
-﻿@model ToDo.Models.Project
+﻿@model ToDo.Models.ViewComponents.ProjectViewComponent
 
 <section class="modal-content">
     <div class="form-title">
@@ -6,7 +6,7 @@
         <a class="form-title-closelink bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
     </div>
     <div class="px-4 pb-2 pt-3 form-main">
-        <form asp-action="Create" asp-controller="Projects">
+        <form asp-action="Create" asp-controller="Projects" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input asp-for="isHidden" hidden />
             <div class="form-group">
@@ -26,6 +26,14 @@
                 <span asp-validation-for="Type" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="Images" class="control-label"></label>
+                <div class="custom-file">
+                    <input asp-for="Images" class="custom-file-input" id="customFile" multiple>
+                    <label class="custom-file-label" for="customFile">Choose file</label>
+                </div>
+                <span asp-validation-for="Images" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
                 <a href="#" class="block btn btn-secondary" data-bs-dismiss="modal">Cancel</a>
             </div>
@@ -35,6 +43,13 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @section Scripts {
+    <script type="text/javascript">
+        // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

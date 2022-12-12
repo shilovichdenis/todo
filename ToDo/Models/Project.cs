@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ToDo.Models
 {
@@ -10,6 +12,9 @@ namespace ToDo.Models
         public bool isHidden { get; set; }
         public Type Type { get; set; }
         public string? Description { get; set; }
+        public string? ImagesPath { get; set; }
+        [NotMapped]
+        public List<string>? Images { get; set; }
         public List<Task>? Tasks { get; set; }
 
     }
@@ -26,5 +31,4 @@ namespace ToDo.Models
         Table,
         Design
     }
-
 }

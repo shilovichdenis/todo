@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ToDo.Models;
-using Task = ToDo.Models.Task;
 
 namespace ToDo.Data
 {

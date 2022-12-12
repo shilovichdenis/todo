@@ -36,6 +36,12 @@
         <textarea asp-for="@Model.Description" class="form-control" autocomplete="off" disabled style="height: 60px; min-height: 60px; max-height: 60px;"></textarea>
         <span asp-validation-for="@Model.Description" class="text-danger"></span>
     </div>
+    <div class="col-md-12 form-group">
+        @foreach (var image in Model.Images)
+        {
+            <img src="~/images/projects/@Model.Name.ToLower()/@image" style="height: 50px; width: 50px;" asp-append-version="true" />
+        }
+    </div>
     <div class="col-md-12 px-2 d-flex justify-content-end">
         <input type="submit" value="Save" class="btn btn-primary" disabled />
     </div>

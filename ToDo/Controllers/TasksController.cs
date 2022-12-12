@@ -8,17 +8,19 @@ using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using ToDo.Data;
 using ToDo.Models;
-using Task = ToDo.Models.Task;
+using ToDo.Services.TaskService;
 
 namespace ToDo.Controllers
 {
     public class TasksController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ITaskService _taskService;
 
-        public TasksController(ApplicationDbContext context)
+        public TasksController(ApplicationDbContext context, ITaskService taskService)
         {
             _context = context;
+            _taskService = taskService;
         }
 
         // GET: Tasks
@@ -63,13 +65,7 @@ namespace ToDo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Task task)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(task);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Main", "Home");
-            }
-            ViewData["Project"] = await _context.Projects.FindAsync(task.ProjectId);
+            task = await _taskService.CreateTask(task);
             return PartialView(task);
         }
 
@@ -120,16 +116,12 @@ namespace ToDo.Controllers
         [HttpGet]
         public async Task<IActionResult> _Edit(int? id)
         {
-            if (id == null || _context.Tasks == null)
-            {
-                return NotFound();
-            }
-
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _taskService.GetTask(id);
             if (task == null)
             {
                 return NotFound();
             }
+
             return PartialView(task);
         }
 
@@ -171,14 +163,7 @@ namespace ToDo.Controllers
         [HttpGet]
         public async Task<IActionResult> _Delete(int? id)
         {
-            if (id == null || _context.Tasks == null)
-            {
-                return NotFound();
-            }
-
-            var task = await _context.Tasks
-                .Include(t => t.Project)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var task = _taskService.GetTask(id);
             if (task == null)
             {
                 return NotFound();
@@ -187,24 +172,20 @@ namespace ToDo.Controllers
             return PartialView(task);
         }
 
-        // POST: Tasks/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    if (_context.Tasks == null)
-        //    {
-        //        return Problem("Entity set 'ApplicationDbContext.Tasks'  is null.");
-        //    }
-        //    var task = await _context.Tasks.FindAsync(id);
-        //    if (task != null)
-        //    {
-        //        _context.Tasks.Remove(task);
-        //    }
+        //POST: Tasks/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var result = await _taskService.DeleteTask(id);
 
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction("Main", "Home");
-        //}
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Main", "Home");
+        }
 
         private bool TaskExists(int id)
         {

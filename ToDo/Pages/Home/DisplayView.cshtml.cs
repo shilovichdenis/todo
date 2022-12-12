@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using ToDo.Models;
-using Task = ToDo.Models.Task;
-using Project = ToDo.Models.Project;
 using ToDo.Data;
 using Microsoft.Build.Evaluation;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,6 +10,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
+using ToDo.Services.ProjectService;
 
 namespace ToDo.Pages
 {
@@ -60,9 +60,14 @@ namespace ToDo.Pages
         }
 
         private readonly ApplicationDbContext _context;
-        public DisplayView(ApplicationDbContext context)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IProjectService _projectService;
+
+        public DisplayView(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, IProjectService projectService)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
+            _projectService = projectService;
         }
 
         [BindProperty]
@@ -82,19 +87,30 @@ namespace ToDo.Pages
                 return Page();
             }
 
-            var project = await _context.Projects.FindAsync(id);
+            var result = await _projectService.GetProject(id);
             var tasks = await _context.Tasks
                 .Where(t => t.ProjectId == id)
                 .OrderByDescending(t => t.Priority)
                 .ThenBy(t => t.CreatedDate)
                 .ToListAsync();
 
-            if (project == null)
+            if (result == null)
             {
                 ProjectStatusMessage = Error + GetEnumDescription(ErrorProject.NotFound);
                 return Page();
             }
-            Project = project;
+            var provider = new PhysicalFileProvider(_webHostEnvironment.WebRootPath);
+            var contents = provider.GetDirectoryContents(result.ImagesPath);
+            var objFiles = contents.OrderBy(m => m.LastModified);
+            var images = new List<string>();
+
+            foreach (var item in objFiles.ToList())
+            {
+                images.Add(item.Name);
+            }
+
+            result.Images = images;
+            Project = result;
             Tasks = tasks;
             return Page();
         }
