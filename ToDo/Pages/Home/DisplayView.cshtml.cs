@@ -47,7 +47,7 @@ namespace ToDo.Pages
     public class DisplayView : PageModel
     {
         private readonly string Error = "ERROR: ";
-        private readonly string Success = "SUCCESS: ";
+        //private readonly string Success = "SUCCESS: ";
 
         private string GetEnumDescription(Enum enumValue)
         {

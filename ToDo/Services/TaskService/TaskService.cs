@@ -39,7 +39,7 @@ namespace ToDo.Services.TaskService
 
         public async Task<List<Task>>? GetAllTasks()
         {
-            return await _context.Tasks.ToListAsync();
+            return await _context.Tasks.Include(t => t.Project).ToListAsync();
         }
 
         public async Task<Task> GetTask(int? id)

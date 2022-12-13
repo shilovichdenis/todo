@@ -12,15 +12,7 @@ namespace ToDo.Models
         public DateTime? CreatedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         public bool isCompleted { get; set; }
-        public Priority Priority { get; set; }
+        public Enums.Priority Priority { get; set; }
         public string? Description { get; set; }
-    }
-
-    public enum Priority
-    {
-        Low,
-        Medium,
-        High,
-        Critical
     }
 }

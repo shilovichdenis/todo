@@ -26,8 +26,8 @@ namespace ToDo.Controllers
         // GET: Tasks
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Tasks.Include(t => t.Project);
-            return View(await applicationDbContext.ToListAsync());
+            var tasks = await _taskService.GetAllTasks();
+            return View(tasks);
         }
 
         // GET: Tasks/Details/5
@@ -163,7 +163,7 @@ namespace ToDo.Controllers
         [HttpGet]
         public async Task<IActionResult> _Delete(int? id)
         {
-            var task = _taskService.GetTask(id);
+            var task = await _taskService.GetTask(id);
             if (task == null)
             {
                 return NotFound();

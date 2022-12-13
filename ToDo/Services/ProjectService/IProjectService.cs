@@ -7,9 +7,9 @@ namespace ToDo.Services.ProjectService
     {
         Task<List<Project>> GetAllProjects();
         Task<Project>? GetProject(int? id);
-        Task<Project>? UpdateProject(int? id, Project project);
+        Task<bool> UpdateProject(int? id, Project project);
         Task<bool> DeleteProject(int? id);
-        Task<Project> CreateProject(ProjectViewComponent project);
+        Task<bool> CreateProject(ProjectViewComponent project);
         bool ProjectExists(int id);
     }
 }

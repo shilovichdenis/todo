@@ -79,7 +79,7 @@
                     <tbody>
                         @if (project.Tasks.Count() != 0)
                         {
-                            @foreach (var (indexTask, task) in project.Tasks.Select((i, t) => (t, i)))
+                            @foreach (var (indexTask, task) in project.Tasks.Select((i, t) => (t, i)).Take(5))
                             {
                                 <tr>
                                     <td>@(indexTask + 1)</td>

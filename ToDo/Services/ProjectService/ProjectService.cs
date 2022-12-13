@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using ToDo.Data;
 using ToDo.Models.ViewComponents;
 
@@ -13,13 +14,13 @@ namespace ToDo.Services.ProjectService
             _context = context;
         }
 
-        public async Task<Project> CreateProject(ProjectViewComponent component)
+        public async Task<bool> CreateProject(ProjectViewComponent component)
         {
-            if(component == null)
+            if (component == null)
             {
-                throw new ArgumentNullException(nameof(component));
+                return false;
             }
-            
+
             string imagesPath = Path.Combine("images", "projects", component.Name.ToLower());
 
             if (!Directory.Exists(imagesPath))
@@ -51,7 +52,7 @@ namespace ToDo.Services.ProjectService
 
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
-            return project;
+            return true;
         }
 
         public async Task<bool> DeleteProject(int? id)
@@ -72,7 +73,10 @@ namespace ToDo.Services.ProjectService
 
         public async Task<List<Project>> GetAllProjects()
         {
-            return await _context.Projects.OrderBy(p => p.isHidden).ToListAsync();
+            return await _context.Projects
+                .Include(p => p.Tasks.Where(t => !t.isCompleted).OrderByDescending(t => t.Priority).ThenBy(t => t.CreatedDate))
+                .OrderBy(p => p.isHidden)
+                .ToListAsync();
         }
 
         public async Task<Project>? GetProject(int? id)
@@ -83,24 +87,21 @@ namespace ToDo.Services.ProjectService
             }
 
             var project = await _context.Projects
-                .Include(p => p.Tasks.OrderByDescending(t => t.CreatedDate))
+                .Include(p => p.Tasks.OrderBy(t => t.isCompleted).OrderByDescending(t => t.CreatedDate))
                 .Where(p => p.Id == id)
                 .FirstOrDefaultAsync();
 
-            if (project == null)
-            {
-                return null;
-            }
+            if (project == null) throw new ArgumentNullException($"{nameof(project)}");
 
             return project;
         }
 
 
-        public async Task<Project>? UpdateProject(int? id, Project project)
+        public async Task<bool> UpdateProject(int? id, Project project)
         {
             if (id != project.Id || id == null)
             {
-                return null;
+                return false;
             }
 
             _context.Update(project);
@@ -108,10 +109,10 @@ namespace ToDo.Services.ProjectService
 
             if (!ProjectExists(project.Id))
             {
-                return null;
+                return false;
             }
 
-            return project;
+            return true;
         }
 
         public bool ProjectExists(int id)

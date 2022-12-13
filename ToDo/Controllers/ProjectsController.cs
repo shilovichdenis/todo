@@ -56,14 +56,17 @@ namespace ToDo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectViewComponent component)
         {
-            var result = _projectService.CreateProject(component);
-            if (result == null)
+            if (!ModelState.IsValid)
             {
-                return PartialView(component);
+                return View(component);
             }
 
-            return RedirectToAction("Main", "Home");
-
+            var task = _projectService.CreateProject(component);
+            if (!task.Result)
+            {
+                return View(component);
+            }
+            return RedirectToAction("Index", "Projects");
         }
 
         public async Task<IActionResult> Hide(int? id)
@@ -153,8 +156,13 @@ namespace ToDo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int? id, Project project)
         {
-            var result = _projectService.UpdateProject(id, project);
-            if (result == null)
+            if (!ModelState.IsValid)
+            {
+                return PartialView(project);
+            }
+
+            var result = await _projectService.UpdateProject(id, project);
+            if (!result)
             {
                 return PartialView(project);
             }

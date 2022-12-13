@@ -1,5 +1,4 @@
 ﻿@model ToDo.Models.Project
-@using Type = ToDo.Models.Type;
 
 @{
     ViewData["Title"] = "Details";
@@ -73,7 +72,7 @@
                         <label asp-for="Type" class="control-label"></label>
                     </div>
                     <div class="col-md-8">
-                        <select asp-for="Type" class="form-control" asp-items="@Html.GetEnumSelectList<Type>()" disabled></select>
+                        <select asp-for="Type" class="form-control" asp-items="@Html.GetEnumSelectList<Enums.TypeOfProject>()" disabled></select>
                     </div>
                     <span asp-validation-for="Type" class="text-danger"></span>
                 </div>
