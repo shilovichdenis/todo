@@ -1,7 +1,5 @@
 ﻿@model IEnumerable<ToDo.Models.Task>
-@{
 
-}
 <div class="tasks-list">
     <table class="table table-bordered text-center align-middle">
         <thead>
@@ -42,7 +40,7 @@
                         </td>
                         <td>
                             <span class="btn-box">
-                                <form method="post" asp-page="/Home/DisplayView" asp-page-handler="CompleteTask" id="complete-task-form">
+                                <form method="post" asp-action="Complete" asp-controller="Tasks" id="complete-task-form">
                                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                                     <input type="hidden" value="@task.Id" name="Id" />
                                     <input type="hidden" value="@task.ProjectId" name="projectId" />
@@ -66,9 +64,9 @@
                     <tr class="task-description-tr tr-nonactive" id="description-@task.Id">
                         <td colspan="5">
                             <form method="post" asp-page="/Home/DisplayView" asp-page-handler="EditTaskDescription" id="edit-task-description-form">
-                                <input type="hidden" value="@task.Id" name="Id"/>
+                                <input type="hidden" value="@task.Id" name="Id" />
                                 <input type="hidden" value="@task.ProjectId" name="projectId" />
-                                <textarea name="textAreaValue" asp-for="@task.Description" class="form-control textarea-description" disabled id="textarea-description-@task.Id"></textarea>
+                                <textarea name="textAreaValue" asp-for="@task.Description" class="form-control textarea-task-description" disabled id="textarea-description-@task.Id"></textarea>
                                 <a class="lock-description-task lock-link table-link bi bi-lock" href="#" data-taskid="@task.Id"></a>
                                 <button class="submit-description-task description-link table-link bi bi-save2" type="submit" disabled></button>
                             </form>
@@ -98,7 +96,7 @@
                         </td>
                         <td>
                             <span class="btn-box">
-                                <form method="post" asp-page="/Home/DisplayView" asp-page-handler="UncompleteTask" id="uncomplete-task-form">
+                                <form method="post" asp-action="Uncomplete" asp-controller="Tasks" id="uncomplete-task-form">
                                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                                     <input type="hidden" value="@task.Id" name="Id" />
                                     <input type="hidden" value="@task.ProjectId" name="projectId" />

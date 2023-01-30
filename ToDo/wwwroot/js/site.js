@@ -11,14 +11,18 @@ $(document).ready(function () {
 
     //LockUnlockFormProject
     $('#lock-form-project-link').click(function () {
-        if (!$('#edit-project-form :input').prop('disabled')) {
-            $('#edit-project-form :input').prop('disabled', true);
+        if (!$('#edit-project-savebtn').prop('disabled')) {
+            $('#edit-project-savebtn').prop('disabled', true);
             $(this).removeClass('bi-unlock unlock-link').addClass('bi-lock lock-link');
         }
         else {
-            $('#edit-project-form :input').prop('disabled', false);
+            $('#edit-project-savebtn').prop('disabled', false);
             $(this).removeClass('bi-lock lock-link').addClass('bi-unlock unlock-link');
         }
+    });
+
+    $('#show-all-information-project-link').click(function () {
+        $('.additional-info').toggleClass('info-hide');
     });
 
     //ModalLink
@@ -57,7 +61,7 @@ $(document).ready(function () {
     $('.taskTitle').click(function () {
         var taskId = $(this).data("taskid");
         var descrId = $('#description-' + taskId);
-        var textAreaId = $('#textarea-description-' + taskId);
+        var textAreaId = $('#textarea-task-description-' + taskId);
         if (descrId.hasClass('tr-nonactive')) {
             descrId.removeClass('tr-nonactive').addClass('tr-active');
         }
@@ -85,4 +89,4 @@ $(document).ready(function () {
     });
 });
 
-//#endregion 
+//#endregion

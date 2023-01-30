@@ -9,7 +9,7 @@
         <span class="h6">
             Are you sure you want to delete the task?
         </span>
-        <form method="post" class="d-flex justify-content-center align-items-center mt-4" asp-page="/Home/DisplayView" asp-page-handler="DeleteTask" id="delete-task-form">
+        <form method="post" class="d-flex justify-content-center align-items-center mt-4" asp-action="Delete" asp-controller="Tasks" id="delete-task-form">
             <input type="hidden" value="@Model.Id" asp-for="Id" />
             <input type="hidden" value="@Model.ProjectId" asp-for="ProjectId" />
             <input class="btn btn-danger me-1" type="submit" value="Delete" />

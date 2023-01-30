@@ -1,21 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ToDo.Models
 {
     public class Project
     {
+        [Required]
+        [Display(Name = "Id")]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public bool isHidden { get; set; }
-        public Enums.TypeOfProject Type { get; set; }
-        public string? Description { get; set; }
-        public string? ImagesPath { get; set; }
+        [Required]
+        [Display(Name = "Name")]
+        public string Name { get; set; } = string.Empty;
+        [Display(Name = "Created Date")]
+        public DateTime? CreatedDate { get; set; } = DateTime.Now;
+        [Display(Name = "Visibility")]
+        public bool isHidden { get; set; } = false;
+        [Display(Name = "Type Of Project")]
+        public Enums.TypeOfProject Type { get; set; } = Enums.TypeOfProject.Console;
+        [Display(Name = "Description")]
+        public string? Description { get; set; } = string.Empty;
+        [Required]
+        [Display(Name = "Images Path")]
+        public string ImagesPath { get; set; } = string.Empty;
         [NotMapped]
-        public List<string>? Images { get; set; }
-        public List<Task>? Tasks { get; set; }
+        [Display(Name = "Images")]
+        public List<string>? Images { get; set; } = null;
+        [Display(Name = "Tasks")]
+        public List<Task>? Tasks { get; set; } = null;
 
     }
 }

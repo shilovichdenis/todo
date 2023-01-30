@@ -13,84 +13,85 @@ namespace ToDo.Services.TaskService
             _context = context;
         }
 
-        public async Task<Task> CreateTask(Task task)
+        public async Task<(Task?, string)> GetTask(int id)
         {
-            if (task == null) throw new ArgumentNullException(nameof(task));
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                return (null, "Error. Task is not found.");
+            }
+
+            var project = await _context.Projects.FindAsync(id);
+            task.Project = project;
+            return (task, string.Empty);
+        }
+
+        public async Task<(bool, string)> CreateTask(Task task)
+        {
+            if (task == null)
+            {
+                return (false, "Error. Task is null");
+            }
+
+            if (TaskExists(task.Id))
+            {
+                return (false, "Error. Task ID exists");
+            }
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
-            return task;
+            return (true, "Success. Task created");
         }
-
-        public async Task<bool> DeleteTask(int? id)
+        public async Task<(bool, string)> UpdateTask(int id, Task task)
         {
-            if (id == null) throw new ArgumentNullException(nameof(id));
-
-            var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
-                return false;
+                return (false, "Error. Task is null");
             }
 
-            var result = _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<Task>>? GetAllTasks()
-        {
-            return await _context.Tasks.Include(t => t.Project).ToListAsync();
-        }
-
-        public async Task<Task> GetTask(int? id)
-        {
-            if (id == null) throw new ArgumentNullException(nameof(id));
-
-            var task = await _context.Tasks.FindAsync(id);
-
-            if (task == null)
-            {
-                return null;
-            }
-
-            return task;
-        }
-
-        public async Task<List<Task>> UpdateAllTasks(List<Task> tasks)
-        {
-            if (tasks == null) throw new ArgumentNullException(nameof(tasks));
-
-            foreach (var task in tasks)
-            {
-                _context.Update(task);
-                await _context.SaveChangesAsync();
-            }
-
-            return tasks;
-        }
-
-        public async Task<Task>? UpdateTask(int? id, Task task)
-        {
             if (id != task.Id)
             {
-                return null;
+                return (false, "Error. ID and Task ID do not match");
             }
 
             _context.Update(task);
             await _context.SaveChangesAsync();
-
-            if (!TaskExists(task.Id))
+            return (true, "Success. Task updated");
+        }
+        public async Task<(bool, string)> UpdateAllTasks(List<Task> tasks)
+        {
+            if (tasks == null)
             {
-                return null;
+                return (false, "Error. Tasks are null");
             }
 
-            return task;
+            _context.Tasks.UpdateRange(tasks);
+            await _context.SaveChangesAsync();
+
+            return (true, "Success. Tasks updated");
+        }
+        public async Task<(bool, string)> DeleteTask(int id)
+        {
+            if (!TaskExists(id))
+            {
+                return (true, "Success. Task has already been deleted");
+            }
+
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+            {
+                return (false, "Error. Task is not found");
+            }
+
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return (true, "Success. Task deleted");
         }
 
-        public bool TaskExists(int? id)
-        {
-            return _context.Tasks.Any(t => t.Id == id);
-        }
+        public async Task<List<Task>?> GetAllTasks() => await _context.Tasks.Include(t => t.Project).OrderBy(t => t.Project.Name).ThenByDescending(t => t.Priority).ThenByDescending(t => t.CompletedDate).ToListAsync();
+        public async Task<List<Task>?> GetAllTasksByProjectId(int id) => await _context.Tasks.Include(t => t.Project).Where(t => t.ProjectId == id).OrderBy(t => t.Priority).ThenByDescending(t => t.CompletedDate).ToListAsync();
+        public bool TaskExists(int id) => _context.Tasks.Any(t => t.Id == id);
 
     }
 }

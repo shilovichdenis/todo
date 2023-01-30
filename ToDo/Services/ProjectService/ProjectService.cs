@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ToDo.Data;
 using ToDo.Models.ViewComponents;
+using System.IO;
 
 namespace ToDo.Services.ProjectService
 {
@@ -13,19 +14,31 @@ namespace ToDo.Services.ProjectService
         {
             _context = context;
         }
+        public async Task<(Project?, string)> GetProject(int id)
+        {
+            var project = await _context.Projects.FindAsync(id);
 
-        public async Task<bool> CreateProject(ProjectViewComponent component)
+            if (project == null)
+            {
+                return (null, "Error. Project not found");
+            }
+
+            project.Tasks = await _context.Tasks.Where(t => t.ProjectId == id).Where(t => t.ProjectId == id).OrderByDescending(t => t.Priority).ThenByDescending(t => t.CompletedDate).ToListAsync();
+            return (project, string.Empty);
+        }
+        public async Task<(bool, string)> CreateProject(ProjectViewComponent component)
         {
             if (component == null)
             {
-                return false;
+                return (false, "Error. Project is null");
             }
 
             string imagesPath = Path.Combine("images", "projects", component.Name.ToLower());
+            string directoryPath = Path.Combine("wwwroot", "images", "projects", component.Name.ToLower());
 
-            if (!Directory.Exists(imagesPath))
+            if (!Directory.Exists(directoryPath))
             {
-                Directory.CreateDirectory(imagesPath);
+                Directory.CreateDirectory(directoryPath);
             }
 
             if (component.Images != null)
@@ -50,75 +63,59 @@ namespace ToDo.Services.ProjectService
                 ImagesPath = imagesPath
             };
 
+            if (ProjectExists(project.Id))
+            {
+                return (false, "Error. Project ID exists");
+            }
+
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
-            return true;
+            return (true, "Success. Project created");
         }
-
-        public async Task<bool> DeleteProject(int? id)
+        public async Task<(bool, string)> UpdateProject(int id, Project project)
         {
-            if (id == null) throw new ArgumentNullException(nameof(id));
-
-
-            var project = await _context.Projects.FindAsync(id);
             if (project == null)
             {
-                return false;
+                return (false, "Error. Project is null");
             }
 
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<Project>> GetAllProjects()
-        {
-            return await _context.Projects
-                .Include(p => p.Tasks.Where(t => !t.isCompleted).OrderByDescending(t => t.Priority).ThenBy(t => t.CreatedDate))
-                .OrderBy(p => p.isHidden)
-                .ToListAsync();
-        }
-
-        public async Task<Project>? GetProject(int? id)
-        {
-            if (id == null)
+            if (id != project.Id)
             {
-                return null;
-            }
-
-            var project = await _context.Projects
-                .Include(p => p.Tasks.OrderBy(t => t.isCompleted).OrderByDescending(t => t.CreatedDate))
-                .Where(p => p.Id == id)
-                .FirstOrDefaultAsync();
-
-            if (project == null) throw new ArgumentNullException($"{nameof(project)}");
-
-            return project;
-        }
-
-
-        public async Task<bool> UpdateProject(int? id, Project project)
-        {
-            if (id != project.Id || id == null)
-            {
-                return false;
+                return (false, "Error. ID and Project Id do not match");
             }
 
             _context.Update(project);
             await _context.SaveChangesAsync();
-
-            if (!ProjectExists(project.Id))
+            return (true, "Success. Project updated");
+        }
+        public async Task<(bool, string)> DeleteProject(int id)
+        {
+            if (!ProjectExists(id))
             {
-                return false;
+                return (true, "Success. Project has already been deleted");
             }
 
-            return true;
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null)
+            {
+                return (false, "Error. Project is not found");
+            }
+            
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
+
+            var directoryPath = Path.Combine("wwwroot", project.ImagesPath);
+
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, true);
+            }
+
+            return (true, "Success. Project deleted");
         }
 
-        public bool ProjectExists(int id)
-        {
-            return _context.Projects.Any(e => e.Id == id);
-        }
+        public async Task<List<Project>?> GetAllProjects() => await _context.Projects.Include(p => p.Tasks.OrderByDescending(t => t.Priority).ThenBy(t => t.CreatedDate)).OrderBy(p => p.isHidden).ToListAsync();
 
+        public bool ProjectExists(int id) => _context.Projects.Any(e => e.Id == id);
     }
 }

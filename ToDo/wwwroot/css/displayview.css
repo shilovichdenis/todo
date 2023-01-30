@@ -42,6 +42,15 @@
     color: white;
 }
 
+.show-all-information-project-link {
+    margin-right: 7rem;
+    color: #e3922d;
+}
+
+    .show-all-information-project-link:hover {
+        background-color: #e08719;
+    }
+
 .lock-form-project-link {
     margin-right: 4rem;
 }
@@ -49,17 +58,22 @@
 .delete-project-link {
 }
 
-.edit-project-form {
+#edit-project-form {
     padding: 15px;
     border: 1px solid #dee2e6;
 }
 
-    .edit-project-form label {
+    #edit-project-form label {
         display: flex;
-        justify-content: center;
         align-items: center;
         height: 100%;
     }
+
+.info-hide {
+    display: none;
+}
+
+
 /*SubmitForm*/
 .project-tasks {
 }
@@ -149,8 +163,8 @@
 
 .textarea-description {
     min-height: 80px !important;
-    height: 80px;
-    max-height: 80px;
+    height: 80px !important;
+    max-height: 80px !important;
 }
 
 .lock-description-task, .submit-description-task {

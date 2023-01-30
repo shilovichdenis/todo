@@ -1,11 +1,11 @@
 ﻿@model ToDo.Models.Project
 
 <section class="modal-content">
-    <div class="form-title">
-        <p class="h4 text-center">DELETE PROJECT</p>
+    <div class="h4 text-center form-title">
+        DELETE PROJECT
         <a class="form-title-closelink bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
     </div>
-    <div class="px-4 pb-2 pt-3 form-main">
+    <div class="px-4 pt-2 pb-4 form-main">
         <dl class="row">
             <dt class="col-sm-5">
                 @Html.DisplayNameFor(model => model.Name)
@@ -27,12 +27,10 @@
             </dd>
         </dl>
 
-        <form asp-action="Delete" asp-controller="Projects">
-            <div class="form-group">
-                <input type="hidden" asp-for="Id" />
-                <input type="submit" value="Delete" class="btn btn-danger" />
-                <a href="#" class="block btn btn-secondary" data-bs-dismiss="modal">Cancel</a>
-            </div>
+        <form method=post asp-action="Delete" asp-controller="Projects" id="delete-project-form" class="d-flex justify-content-center align-items-center mt-4">
+            <input type="hidden" asp-for="Id" />
+            <input class="btn btn-danger me-1" type="submit" value="Delete" />
+            <a class="btn btn-secondary ms-1" href="#" data-bs-dismiss="modal">Cancel</a>
         </form>
     </div>
 </section>

@@ -1,26 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
-using ToDo.Data;
-using ToDo.Models;
-using ToDo.Services.TaskService;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ToDo.Controllers
 {
     public class TasksController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly ITaskService _taskService;
+        private readonly IProjectService _projectService;
 
-        public TasksController(ApplicationDbContext context, ITaskService taskService)
+        public TasksController(ITaskService taskService, IProjectService projectService)
         {
-            _context = context;
             _taskService = taskService;
+            _projectService = projectService;
         }
 
         // GET: Tasks
@@ -30,146 +20,203 @@ namespace ToDo.Controllers
             return View(tasks);
         }
 
-        // GET: Tasks/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: Tasks/_Create
+        [HttpGet]
+        public async Task<IActionResult> _Create(int projectId)
         {
-            if (id == null || _context.Tasks == null)
-            {
-                return NotFound();
-            }
+            var result = await _projectService.GetProject(projectId);
+            ViewData["Project"] = result.Item1;
 
-            var task = await _context.Tasks
-                .Include(t => t.Project)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (task == null)
-            {
-                return NotFound();
-            }
+            TempData["ProjectId"] = projectId;
 
-            return View(task);
-        }
-
-
-
-
-        // GET: Tasks/Create
-        public async Task<IActionResult> Create(int projectId)
-        {
-            ViewData["Project"] = await _context.Projects.FindAsync(projectId);
             return PartialView();
         }
+
         // POST: Tasks/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Task task)
         {
-            task = await _taskService.CreateTask(task);
-            return PartialView(task);
-        }
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
 
-        public async Task<IActionResult> Complete(int? id)
-        {
-            if (id == null || _context.Tasks == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return PartialView(task);
             }
 
-            var task = await _context.Tasks.FindAsync(id);
-            task.isCompleted = true;
-            task.CompletedDate = DateTime.Now;
+            var result = await _taskService.CreateTask(task);
 
-            try
+            if (!result.Item1)
             {
-                _context.Update(task);
-                await _context.SaveChangesAsync();
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!TaskExists(task.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
             }
-            return RedirectToAction("Main", "Home");
-        }
-
-        public async Task<IActionResult> CompleteAll(int? projectId)
-        {
-            var tasks = await _context.Tasks.Where(t => t.ProjectId == projectId).Where(t => !t.isCompleted).ToListAsync();
-            foreach (var task in tasks)
-            {
-                task.isCompleted = true;
-                task.CompletedDate = DateTime.Now;
-                _context.Update(task);
-            }
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Main", "Home");
         }
 
         // GET: Tasks/_Edit/5
         [HttpGet]
-        public async Task<IActionResult> _Edit(int? id)
+        public async Task<IActionResult> _Edit(int id)
         {
-            var task = await _taskService.GetTask(id);
-            if (task == null)
-            {
-                return NotFound();
-            }
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+            TempData["ProjectId"] = tempProjectId;
 
-            return PartialView(task);
+            var result = await _taskService.GetTask(id);
+
+            if (result.Item1 == null)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                return PartialView(result.Item1);
+            }
         }
 
+        // POST: Tasks/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Task task)
+        {
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, Task task)
-        //{
-        //    if (id != task.Id)
-        //    {
-        //        return NotFound();
-        //    }
+            if (!ModelState.IsValid)
+            {
+                //return partial or redirect to action
+                TempData["TaskMessage"] = "Error. Model is not valid";
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+                return PartialView("_Edit", task);
+            }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(task);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!TaskExists(task.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToPage("/Home/DisplayView", new { projectId = task.ProjectId });
-        //    }
-        //    ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Name", task.ProjectId);
-        //    return PartialView(task);
-        //}
+            var result = await _taskService.UpdateTask(id, task);
+
+            if (!result.Item1)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+        }
+
+        public async Task<IActionResult> Complete(int id)
+        {
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+
+            var result = await _taskService.GetTask(id);
+            if (result.Item1 == null)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                result.Item1.isCompleted = true;
+                result.Item1.CompletedDate = DateTime.Now;
+
+                var resultUpdate = await _taskService.UpdateTask(id, result.Item1);
+                if (!resultUpdate.Item1)
+                {
+                    TempData["TaskMessage"] = resultUpdate.Item2;
+                    return RedirectToAction("Details", "Projects", new { Id = result.Item1.ProjectId });
+                }
+                else
+                {
+                    TempData["TaskMessage"] = "Success. Task completed";
+                    return RedirectToAction("Details", "Projects", new { Id = result.Item1.ProjectId });
+                }
+            }
+        }
+
+        public async Task<IActionResult> Uncomplete(int id)
+        {
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+
+            var result = await _taskService.GetTask(id);
+            if (result.Item1 == null)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                result.Item1.isCompleted = false;
+                result.Item1.CompletedDate = null;
+
+                var resultUpdate = await _taskService.UpdateTask(id, result.Item1);
+                if (!resultUpdate.Item1)
+                {
+                    TempData["TaskMessage"] = resultUpdate.Item2;
+                    return RedirectToAction("Details", "Projects", new { Id = result.Item1.ProjectId });
+                }
+                else
+                {
+                    TempData["TaskMessage"] = "Success. Task uncompleted";
+                    return RedirectToAction("Details", "Projects", new { Id = result.Item1.ProjectId });
+                }
+            }
+        }
+
+        public async Task<IActionResult> CompleteAll(int projectId)
+        {
+            var tasks = await _taskService.GetAllTasksByProjectId(projectId);
+            if (tasks == null || tasks.Count == 0)
+            {
+                TempData["TaskMessage"] = "Error. No Tasks found";
+                return RedirectToAction("Details", "Projects", new { Id = projectId });
+            }
+
+            if (!tasks.Where(t => !t.isCompleted).Any())
+            {
+                TempData["TaskMessage"] = "Error. All Tasks have already been completed";
+                return RedirectToAction("Details", "Projects", new { Id = projectId });
+            }
+
+            foreach (var task in tasks)
+            {
+                task.isCompleted = true;
+                task.CompletedDate = DateTime.Now;
+            }
+
+            var result = await _taskService.UpdateAllTasks(tasks);
+            if (!result.Item1)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = projectId });
+            }
+            else
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = projectId });
+            }
+
+        }
 
         // GET: Tasks/_Delete/5
         [HttpGet]
-        public async Task<IActionResult> _Delete(int? id)
+        public async Task<IActionResult> _Delete(int id)
         {
-            var task = await _taskService.GetTask(id);
-            if (task == null)
-            {
-                return NotFound();
-            }
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+            TempData["ProjectId"] = tempProjectId;
 
-            return PartialView(task);
+            var result = await _taskService.GetTask(id);
+            if (result.Item1 == null)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                return PartialView(result.Item1);
+            }
         }
 
         //POST: Tasks/Delete/5
@@ -177,19 +224,38 @@ namespace ToDo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+
             var result = await _taskService.DeleteTask(id);
 
-            if (!result)
+            if (!result.Item1)
             {
-                return NotFound();
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
             }
-
-            return RedirectToAction("Main", "Home");
+            else
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
         }
 
-        private bool TaskExists(int id)
+        // GET: Tasks/Details/5
+        [ActionName("Details")]
+        public async Task<IActionResult> Details(int id)
         {
-            return _context.Tasks.Any(e => e.Id == id);
+            var tempProjectId = int.Parse(TempData["ProjectId"].ToString());
+
+            var result = await _taskService.GetTask(id);
+            if (result.Item1 == null)
+            {
+                TempData["TaskMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = tempProjectId });
+            }
+            else
+            {
+                return View(result.Item1);
+            }
         }
     }
 }

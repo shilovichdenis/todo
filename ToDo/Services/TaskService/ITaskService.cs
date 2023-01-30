@@ -2,13 +2,14 @@
 {
     public interface ITaskService
     {
-        Task<List<Task>>? GetAllTasks();
-        Task<Task>? GetTask(int? id);
-        Task<Task> CreateTask(Task task);
-        Task<List<Task>> UpdateAllTasks(List<Task> tasks);
-        Task<Task>? UpdateTask(int? id, Task task);
-        Task<bool> DeleteTask(int? id);
-        bool TaskExists(int? id);
+        Task<(Task?, string)> GetTask(int id);
+        Task<(bool, string)> CreateTask(Task task);
+        Task<(bool, string)> UpdateTask(int id, Task task);
+        Task<(bool, string)> UpdateAllTasks(List<Task> tasks);
+        Task<(bool, string)> DeleteTask(int id);
+        Task<List<Task>?> GetAllTasks();
+        Task<List<Task>?> GetAllTasksByProjectId(int id);
+        bool TaskExists(int id);
 
     }
 }

@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using ToDo.Data;
-using ToDo.Models;
-using ToDo.Services.ProjectService;
 
 namespace ToDo.Controllers
 {
@@ -11,18 +9,17 @@ namespace ToDo.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<HomeController> _logger;
-        private readonly IProjectService _projectService;
 
-        public HomeController(ApplicationDbContext context, ILogger<HomeController> logger, IProjectService projectService)
+        public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
         {
             _context = context;
             _logger = logger;
-            _projectService = projectService;
         }
 
         public async Task<IActionResult> Main()
         {
-            var projects = await _projectService.GetAllProjects();
+            ViewData["ProjectStatusMessage"] = TempData["ProjectMessage"] as string;
+            var projects = await _context.Projects.Include(p => p.Tasks.Where(t => !t.isCompleted).OrderByDescending(t => t.Priority).ThenBy(t => t.CreatedDate)).OrderBy(p => p.isHidden).ToListAsync();
             return View(projects);
         }
 

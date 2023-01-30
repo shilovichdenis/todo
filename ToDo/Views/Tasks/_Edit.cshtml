@@ -1,12 +1,12 @@
 ﻿@model ToDo.Models.Task
 
 <section class="modal-content" id="edit-form-info">
-    <div class=" form-title">
+    <div class="form-title">
         <p class="h4 text-center">EDIT TASK</p>
         <a class="form-title-closelink bi bi-x-square" href="#" data-bs-dismiss="modal"></a>
     </div>
     <div class="px-4 pb-2 pt-3 form-main">
-        <form method="post" asp-page="/Home/DisplayView" asp-page-handler="EditTask" id="edit-task-form">
+        <form method="post" asp-action="Edit" asp-controller="Tasks" id="edit-task-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input asp-for="Id" hidden />
             <input asp-for="ProjectId" hidden />
@@ -14,7 +14,7 @@
             <input type="datetime-local" asp-for="CreatedDate" id="date" hidden />
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" autocomplete="off"/>
+                <input asp-for="Title" class="form-control" autocomplete="off" required />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -24,7 +24,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" autocomplete="off"/>
+                <input asp-for="Description" class="form-control" autocomplete="off" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">

@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<ToDo.Models.Project>
-
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -20,11 +19,12 @@
     <a class="show-projects-link show-link bi bi-eye" id="hidden-projects-link"></a>
     <input type="checkbox" id="hidden-projects-checkbox" checked hidden />
     <a class="create-project-link create-link modal-link bi bi-plus"
-       asp-action="Create"
+       asp-action="_Create"
        asp-controller="Projects"
        data-bs-toggle="modal"
        data-bs-target="#modal-form"></a>
 </section>
+<partial name="_StatusMessage" for="@ViewData["ProjectStatusMessage"]" />
 <section class="projects-list">
     @foreach (var (indexProject, project) in Model.Select((i, p) => (p, i)))
     {
@@ -36,7 +36,7 @@
 
         <div class="project mt-4 @statusClass">
             <div class="project-title h4 text-center">
-                <a class="display-project-link" asp-page="/Home/DisplayView" asp-route-id="@project.Id">@project.Name.ToUpper()</a>
+                <a class="display-project-link" asp-action="Details" asp-controller="Projects" asp-route-id="@project.Id">@project.Name.ToUpper()</a>
                 @if (project.isHidden)
                 {
                     <a class="show-project-link show-link title-link bi bi-eye"
@@ -52,13 +52,13 @@
                asp-route-id=@project.Id></a>
                 }
                 <a class="create-task-link create-link modal-link title-link bi bi-plus"
-               asp-action="Create"
+               asp-action="_Create"
                asp-controller="Tasks"
                asp-route-projectId="@project.Id"
                data-bs-toggle="modal"
                data-bs-target="#modal-form"></a>
                 <a class="delete-project-link delete-link modal-link title-link bi bi-x"
-               asp-action="Delete"
+               asp-action="_Delete"
                asp-controller="Projects"
                asp-route-id="@project.Id"
                data-bs-toggle="modal"
@@ -70,7 +70,7 @@
                         <tr>
                             <th>№</th>
                             <th>Title</th>
-                            <th>Date</th>
+                            <th>Created Date</th>
                             <th>Priority</th>
                             <th>
                             </th>

@@ -1,0 +1,37 @@
+﻿@model string
+<style>
+    .error {
+        color: #610d0d;
+    }
+
+    .success {
+        color: #17290b;
+    }
+
+</style>
+@if (Model != null)
+{
+    var alertClass = string.Empty;
+    var message = string.Empty;
+    var messageTag = string.Empty;
+    if (Model.StartsWith("Error"))
+    {
+        messageTag = "Error.";
+        message = Model.Replace("Error.", "");
+        alertClass = "danger";
+    }
+    else if (Model.StartsWith("Success"))
+    {
+        messageTag = "Success.";
+        message = Model.Replace("Success.", "");
+        alertClass = "success";
+    }
+    else
+    {
+        alertClass = "info";
+    }
+    <div class="alert alert-@alertClass alert-dismissible my-3" role="alert">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <strong class="">@messageTag</strong>@message
+    </div>
+}

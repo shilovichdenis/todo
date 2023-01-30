@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Build.Evaluation;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ToDo.Data;
@@ -17,13 +19,11 @@ namespace ToDo.Controllers
 {
     public class ProjectsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IProjectService _projectService;
 
-        public ProjectsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, IProjectService projectService)
+        public ProjectsController(IWebHostEnvironment webHostEnvironment, IProjectService projectService)
         {
-            _context = context;
             _webHostEnvironment = webHostEnvironment;
             _projectService = projectService;
         }
@@ -34,19 +34,9 @@ namespace ToDo.Controllers
             return View(await _projectService.GetAllProjects());
         }
 
-        // GET: Projects/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            var result = _projectService.GetProject(id);
-            if (result == null)
-            {
-                return NotFound();
-            }
-            return View(result);
-        }
-
-        // GET: Projects/Create
-        public IActionResult Create()
+        // GET: Projects/_Create
+        [HttpGet]
+        public IActionResult _Create()
         {
             return PartialView();
         }
@@ -58,126 +48,80 @@ namespace ToDo.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(component);
+                TempData["ProjectMessage"] = "Model is not valid";
+                return RedirectToAction("Main", "Home");
             }
 
-            var task = _projectService.CreateProject(component);
-            if (!task.Result)
+            var result = await _projectService.CreateProject(component);
+
+            if (!result.Item1)
             {
-                return View(component);
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
             }
-            return RedirectToAction("Index", "Projects");
+            else
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
+            }
         }
 
-        public async Task<IActionResult> Hide(int? id)
-        {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-            project.isHidden = true;
-            try
-            {
-                _context.Update(project);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                //if (!ProjectExists(project.Id))
-                //{
-                //    return NotFound();
-                //}
-                //else
-                //{
-                //    throw;
-                //}
-            }
-            return RedirectToAction("Main", "Home");
-        }
-
-        public async Task<IActionResult> Show(int? id)
-        {
-            if (id == null || _context.Projects == null)
-            {
-                return NotFound();
-            }
-
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-            project.isHidden = false;
-            try
-            {
-                _context.Update(project);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                //if (!ProjectExists(project.Id))
-                //{
-                //    return NotFound();
-                //}
-                //else
-                //{
-                //    throw;
-                //}
-            }
-            return RedirectToAction("Main", "Home");
-        }
-
-
+        // GET: Projects/_Edit/5
         [HttpGet]
-        public async Task<IActionResult> _Edit(int id, Project project)
-        {
-            return PartialView(project);
-        }
-
-        // GET: Projects/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> _Edit(int id)
         {
             var result = await _projectService.GetProject(id);
-            if (result == null)
+
+            if (result.Item1 == null)
             {
-                return NotFound();
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = id });
             }
-            return View(result);
+            else
+            {
+                return PartialView(result);
+            }
         }
 
         // POST: Projects/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int? id, Project project)
+        public async Task<IActionResult> Edit(int id, Project project)
         {
             if (!ModelState.IsValid)
             {
-                return PartialView(project);
+                TempData["ProjectMessage"] = "Error. Model is not valid";
+                return RedirectToAction("Details", "Projects", new { Id = id });
             }
 
             var result = await _projectService.UpdateProject(id, project);
-            if (!result)
+
+            if (!result.Item1)
             {
-                return PartialView(project);
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = id });
             }
-            return RedirectToAction("Main", "Home");
+            else
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Details", "Projects", new { Id = id });
+            }
         }
 
-        // GET: Projects/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // GET: Projects/_Delete/5
+        [HttpGet]
+        public async Task<IActionResult> _Delete(int id)
         {
-            var project = await _projectService.GetProject(id);
-            if (project == null)
+            var result = await _projectService.GetProject(id);
+            if (result.Item1 == null)
             {
-                return NotFound();
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
             }
-            return PartialView(project);
+            else
+            {
+                return PartialView(result.Item1);
+            }
         }
 
         // POST: Projects/Delete/5
@@ -186,12 +130,89 @@ namespace ToDo.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var result = await _projectService.DeleteProject(id);
-            if (!result)
+            if (!result.Item1)
             {
-                return NotFound();
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+            else
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+        }
+
+        // GET: Projects/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            ViewData["TaskStatusMessage"] = TempData["TaskMessage"] as string;
+            ViewData["ProjectStatusMessage"] = TempData["ProjectMessage"] as string;
+            TempData["ProjectId"] = id;
+            var result = await _projectService.GetProject(id);
+            if (result.Item1 == null)
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+            else
+            {
+                return View(result.Item1);
+            }
+        }
+
+        public async Task<IActionResult> Hide(int id)
+        {
+            var result = await _projectService.GetProject(id);
+
+            if (result.Item1 == null)
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
             }
 
-            return RedirectToAction("Main", "Home");
+            result.Item1.isHidden = true;
+            var resultUpdate = await _projectService.UpdateProject(id, result.Item1);
+
+            if (!resultUpdate.Item1)
+            {
+                TempData["ProjectMessage"] = resultUpdate.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+            else
+            {
+                TempData["ProjectMessage"] = resultUpdate.Item2;
+                return RedirectToAction("Main", "Home");
+            }
         }
+
+        public async Task<IActionResult> Show(int id)
+        {
+            var result = await _projectService.GetProject(id);
+
+            if (result.Item1 == null)
+            {
+                TempData["ProjectMessage"] = result.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+
+            result.Item1.isHidden = false;
+            var resultUpdate = await _projectService.UpdateProject(id, result.Item1);
+
+            if (!resultUpdate.Item1)
+            {
+                TempData["ProjectMessage"] = resultUpdate.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+            else
+            {
+                TempData["ProjectMessage"] = resultUpdate.Item2;
+                return RedirectToAction("Main", "Home");
+            }
+        }
+
+
+
+
+
     }
 }
